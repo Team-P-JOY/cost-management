@@ -22,7 +22,7 @@ export async function GET(req) {
     sql = `INNER JOIN CST_LABJOB LB ON L.LAB_ID = LB.LAB_ID`;
     sql2 = `AND LB.PERSON_ID = ${userIdlogin}`;
     personId1 = `,LB.PERSON_ID`;
-  } else if (userlogin === "แอดมิน") {
+  } else if (userlogin === "แอดมิน" || userlogin === "หัวหน้าฝ่าย") {
     personId1 = `,L.PERSON_ID`;
     sql = ``;
     sql2 = ``;

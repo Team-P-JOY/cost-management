@@ -67,12 +67,38 @@ export default function Detail() {
     fetchData();
   }, [facultyId, schId]);
 
+  // const handleCreate = async (courseid) => {
+  //   const term = data.term.find((item) => item.schId == schId);
+  //   const section = filterData.find(
+  //     (item) => item.courseid === courseid
+  //   )?.section;
+  //   const response = await axios.post(`/api/assign-course`, {
+  //     courseid: courseid,
+  //     schId: schId,
+  //     acadyear: term.acadyear,
+  //     semester: term.semester,
+  //     section,
+  //     userId: session?.user.person_id,
+  //   });
+
+  //   const res = response.data;
+  //   if (res.success) {
+  //     router.push(`/assign-course/${res.labId}`);
+  //   }
+  // };
   const handleCreate = async (courseid) => {
     const term = data.term.find((item) => item.schId == schId);
     const section = filterData.find(
       (item) => item.courseid === courseid
     )?.section;
-    const response = await axios.post(`/api/assign-course`, {
+    const params = new URLSearchParams({
+      courseId: encodeURIComponent(courseid),
+      schId: encodeURIComponent(schId),
+    });
+    // router.push(`/assign-course/new`);
+    router.push(`/assign-course/new?${params.toString()}`);
+    // ถ้าคุณยังต้องการให้แค่ดูข้อมูลที่เตรียมจะส่ง สามารถ console.log ได้
+    console.log({
       courseid: courseid,
       schId: schId,
       acadyear: term.acadyear,
@@ -80,11 +106,6 @@ export default function Detail() {
       section,
       userId: session?.user.person_id,
     });
-
-    const res = response.data;
-    if (res.success) {
-      router.push(`/assign-course/${res.labId}`);
-    }
   };
 
   const breadcrumb = [
@@ -130,8 +151,7 @@ export default function Detail() {
         <div className="flex justify-center">
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => handleCreate(item.courseid)}
-          >
+            onClick={() => handleCreate(item.courseid)}>
             <FiCheckCircle className="w-4 h-4" />
             เลือก
           </button>
@@ -143,8 +163,7 @@ export default function Detail() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
-    >
+      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
@@ -162,8 +181,7 @@ export default function Detail() {
                   `/assign-course/create?facultyId=${e.target.value}&schId=${schId}`
                 );
               }}
-              className={className.select}
-            >
+              className={className.select}>
               <option value="" disabled>
                 เลือกสำนักวิชา
               </option>
@@ -185,8 +203,7 @@ export default function Detail() {
                   `/assign-course/create?facultyId=${facultyId}&schId=${e.target.value}`
                 );
               }}
-              className={className.select}
-            >
+              className={className.select}>
               <option value="" disabled>
                 เลือกเทอมการศึกษา
               </option>
@@ -207,8 +224,7 @@ export default function Detail() {
               ].map((option) => (
                 <label
                   key={option.id}
-                  className="flex items-center space-x-2 cursor-pointer"
-                >
+                  className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="radio"
                     name="options"
@@ -238,8 +254,7 @@ export default function Detail() {
           <button
             type="button"
             className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
-            onClick={() => router.back()}
-          >
+            onClick={() => router.back()}>
             ย้อนกลับ
           </button>
         </div>

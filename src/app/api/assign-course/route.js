@@ -355,90 +355,36 @@ export async function GET(req) {
   }
 }
 
-// export async function POST(req) {
-//   try {
-//     const body = await req.json();
-//     const {
-//       acadyear,
-//       courseid,
-//       hour,
-//       labgroupId,
-//       labgroupNum,
-//       labroom,
-//       personId,
-//       schId,
-//       section,
-//       semester,
-//       userId,
-//       labasset,
-//       courseUser,
-//     } = body;
-
-//     if (
-//       !acadyear ||
-//       !courseid ||
-//       !hour ||
-//       !labgroupId ||
-//       !labgroupNum ||
-//       !labroom ||
-//       !personId ||
-//       !schId ||
-//       !section ||
-//       !semester ||
-//       !userId
-//     ) {
-//       return NextResponse.json(
-//         { success: false, message: "Missing fields" },
-//         { status: 400 }
-//       );
-//     }
-
-//     const labId = await executeQuery(
-//       `SELECT CST_LABCOURSE_SEQ.NEXTVAL AS ID FROM DUAL`
-//     );
-
-//     await executeQuery(
-//       `INSERT INTO CST_LABCOURSE
-//         (LAB_ID, ACADYEAR, COURSEID, HOUR, LABGROUP_ID, LABGROUP_NUM, LABROOM, SCH_ID, SECTION, SEMESTER, PERSON_ID, DATE_CREATED, USER_CREATED, DATE_UPDATED, USER_UPDATED)
-//       VALUES
-//         (:labId, :acadyear, :courseid, :hour, :labgroupId, :labgroupNum, :labroom, :schId, :section, :semester, :personId, SYSDATE, :userCreated, SYSDATE, :userUpdated)`,
-//       {
-//         labId: labId[0].id,
-//         acadyear,
-//         courseid,
-//         hour,
-//         labgroupId: parseInt(labgroupId),
-//         labgroupNum,
-//         labroom,
-//         schId,
-//         section,
-//         semester,
-//         personId,
-//         userCreated: userId,
-//         userUpdated: userId,
-//       }
-//     );
-
-//     await saveLabasset(labasset, labId[0].id);
-//     await saveCourseUser(courseUser, labId[0].id);
-//     return NextResponse.json(
-//       { success: true, message: "User added successfully" },
-//       { status: 201 }
-//     );
-//   } catch (error) {
-//     return NextResponse.json(
-//       { success: false, message: "Database Error", error },
-//       { status: 500 }
-//     );
-//   }
-// }
-
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { courseid, schId, userId, acadyear, semester, section } = body;
+    const {
+      courseid,
+      schId,
+      userId,
+      acadyear,
+      semester,
+      section,
+      labgroupId,
+      labroom,
+      hour,
+      personId,
+    } = body;
 
-    if (!courseid || !schId || !userId || !acadyear || !semester || !section) {
+    if (
+      [
+        courseid,
+        schId,
+        userId,
+        acadyear,
+        semester,
+        section,
+        labgroupId,
+        labroom,
+        hour,
+        personId,
+      ].some((v) => v === undefined || v === null || v === "")
+    ) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
         { status: 400 }
@@ -451,9 +397,9 @@ export async function POST(req) {
 
     await executeQuery(
       `INSERT INTO CST_LABCOURSE
-        (LAB_ID, COURSEID, SCH_ID, ACADYEAR, SEMESTER,SECTION, DATE_CREATED, USER_CREATED, DATE_UPDATED, USER_UPDATED)
-      VALUES
-        (:labId, :courseid, :schId,:acadyear,:semester,:section,  SYSDATE, :userCreated, SYSDATE, :userUpdated)`,
+        (LAB_ID, COURSEID, SCH_ID, ACADYEAR, SEMESTER, SECTION, LABGROUP_ID, LABROOM, HOUR, PERSON_ID, DATE_CREATED, USER_CREATED)
+       VALUES
+        (:labId, :courseid, :schId, :acadyear, :semester, :section, :labgroupId, :labroom, :hour, :personId, SYSDATE, :userCreated)`,
       {
         labId: labId[0].id,
         courseid,
@@ -461,17 +407,22 @@ export async function POST(req) {
         acadyear,
         semester,
         section,
+        labgroupId: parseInt(labgroupId, 10),
+        labroom,
+        hour,
+        personId: parseInt(personId, 10),
         userCreated: userId,
-        userUpdated: userId,
       }
     );
+
+    return NextResponse.json({
+      success: true,
+      labId: labId[0].id,
+    });
+  } catch (err) {
+    console.error(err);
     return NextResponse.json(
-      { success: true, message: "User added successfully", labId: labId[0].id },
-      { status: 201 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, message: "Database Error", error },
+      { success: false, message: "Server error" },
       { status: 500 }
     );
   }
@@ -486,7 +437,7 @@ export async function PUT(req) {
       courseid,
       hour,
       labgroupId,
-      labgroupNum,
+      // labgroupNum,
       labroom,
       personId,
       schId,
@@ -503,7 +454,7 @@ export async function PUT(req) {
       !courseid ||
       !hour ||
       !labgroupId ||
-      !labgroupNum ||
+      // !labgroupNum ||
       !labroom ||
       !personId ||
       !schId ||
@@ -519,14 +470,14 @@ export async function PUT(req) {
 
     await executeQuery(
       `UPDATE CST_LABCOURSE 
-       SET ACADYEAR = :acadyear, COURSEID = :courseid, HOUR = :hour, LABGROUP_ID = :labgroupId, LABGROUP_NUM = :labgroupNum, LABROOM = :labroom, SCH_ID = :schId, SECTION = :section, SEMESTER = :semester, PERSON_ID = :personId, DATE_UPDATED = SYSDATE, USER_UPDATED = :userUpdated
+       SET ACADYEAR = :acadyear, COURSEID = :courseid, HOUR = :hour, LABGROUP_ID = :labgroupId, LABROOM = :labroom, SCH_ID = :schId, SECTION = :section, SEMESTER = :semester, PERSON_ID = :personId, DATE_UPDATED = SYSDATE, USER_UPDATED = :userUpdated
        WHERE LAB_ID = :id`,
       {
         acadyear,
         courseid,
         hour,
         labgroupId: parseInt(labgroupId),
-        labgroupNum,
+        // labgroupNum,
         labroom,
         schId,
         section,

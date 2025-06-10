@@ -122,7 +122,7 @@ export default function Page() {
     },
   ];
   let button;
-  if (userlogin === "หัวหน้าบทปฏิบัติการ") {
+  if (userlogin === "หัวหน้าบทปฏิบัติการ" || labjob.length > 0) {
     button = " ";
     meta.push({
       key: "labjobId",

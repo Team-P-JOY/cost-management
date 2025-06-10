@@ -98,7 +98,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-semibold text-white dark:text-gray-300">
           {/* Dashboard */}
-          <Link href="/dashboard">คลิก</Link>
+          {/* <Link href="/dashboard">คลิก</Link> */}
         </h1>
 
         <div className="flex items-center justify-end space-x-4">
@@ -188,7 +188,7 @@ export default function Dashboard() {
       </div>
 
       <div className="collapse bg-gray-100 dark:bg-gray-800 mt-2">
-        <input type="radio" name="my-accordion-1" defaultChecked />
+        <input type="radio" name="my-accordion-1" />
         <div className="collapse-title text-xl font-medium text-gray-800 dark:text-gray-300 flex items-center space-x-2">
           <FiChevronsDown className="text-purple-500" />{" "}
           <p>ฝ่ายห้องปฏิบติการ</p>
@@ -261,7 +261,7 @@ export default function Dashboard() {
         </div>
       </div>
       <div className="collapse bg-gray-100 dark:bg-gray-800 mt-2">
-        <input type="radio" name="my-accordion-1" />
+        <input type="radio" name="my-accordion-1" defaultChecked />
         <div className="collapse-title text-xl font-medium text-gray-800 dark:text-gray-300 flex items-center space-x-2">
           <FiChevronsDown className="text-purple-500" /> <p>รายงาน</p>
         </div>

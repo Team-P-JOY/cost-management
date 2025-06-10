@@ -30,6 +30,10 @@ export default function Page() {
   const _onPressAddasset = (labId) => {
     router.push(`/prepare-lab/plan-asset?id=${labId}`);
   };
+  const _onPressAddlab = (labId) => {
+    router.push(`/prepare-lab/Use-asset?id=${labId}`);
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -71,10 +75,6 @@ export default function Page() {
 
     fetchData();
   }, [schId]);
-
-  // if (loading) return <p>กำลังโหลด...</p>;
-  // if (error) return <p className="text-red-500">{error}</p>;
-  // // Define the meta variable if needed
 
   const meta = [
     {
@@ -162,63 +162,46 @@ export default function Page() {
       width: "270",
       className: "text-center",
       render: (item) => {
-        console.log(
-          "Rendering item:",
-          item.labId,
-          item.personId,
-          "vs",
-          userIdlogin
-        );
-        return String(item.personId) === String(userIdlogin) ? (
-          <div className="cursor-pointer items-center justify-center flex gap-1">
-            <button
-              className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-              onClick={() => _onPressAdd(item.labId)}>
-              กำหนดปฏิบัติการ
-            </button>
-            <button
-              className="cursor-pointer p-2 text-white text-sm bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-              onClick={() => _onPressAddasset(item.labId)}>
-              แผนการใช้ทรัพยากร
-            </button>
-          </div>
-        ) : (
-          "-"
-        );
-      },
-    });
-  } else if (
-    [
-      "ผู้ประสานงานรายวิชา",
-      "แอดมิน",
-      "หัวหน้าฝ่าย",
-      "หัวหน้าบทปฏิบัติการ",
-    ].includes(userlogin)
-  ) {
-    meta.push({
-      key: "labId",
-      content: "จัดการ",
-      width: "270",
-      className: "text-center",
-      render: (item) => {
-        console.log(
-          "Rendering item:",
-          item.labId,
-          item.personId,
-          "vs",
-          userIdlogin
-        );
         const isOwner = String(item.personId) === String(userIdlogin);
-        console.log("userIdlogin =", isOwner);
-        return isOwner ? (
+        const isAdmin = userlogin === "แอดมิน";
+        const isCoordinator = userlogin === "ผู้ประสานงานรายวิชา";
+        const isDeptHead = userlogin === "หัวหน้าฝ่าย";
+        const isLabChief = userlogin === "หัวหน้าบทปฏิบัติการ";
+
+        if (!isOwner) {
+          if (isCoordinator || isAdmin || isDeptHead) {
+            return "-";
+          }
+          return null;
+        }
+
+        // ถ้าเป็นเจ้าของ (isOwner === true)
+        return (
           <div className="cursor-pointer items-center justify-center flex gap-1">
-            <button
-              className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-              onClick={() => _onPressAdd(item.labId)}>
-              การใช้ทรัพยากรและอุปกรณ์ชำรุด
-            </button>
+            {(isAdmin || isCoordinator || isDeptHead) && (
+              <>
+                <button
+                  className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200"
+                  onClick={() => _onPressAdd(item.labId)}>
+                  กำหนดปฏิบัติการ
+                </button>
+                <button
+                  className="cursor-pointer p-2 text-white text-sm bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-200"
+                  onClick={() => _onPressAddasset(item.labId)}>
+                  แผนการใช้ทรัพยากร
+                </button>
+              </>
+            )}
+
+            {(isAdmin || isLabChief) && (
+              <button
+                className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200"
+                onClick={() => _onPressAdd(item.labId)}>
+                การใช้ทรัพยากรและอุปกรณ์ชำรุด
+              </button>
+            )}
           </div>
-        ) : null;
+        );
       },
     });
   }
@@ -233,6 +216,8 @@ export default function Page() {
   if (userlogin === "หัวหน้าบทปฏิบัติการ") {
     title = "ใบงานปฏิบัติการตามรายวิชา";
   } else if (userlogin === "แอดมิน") {
+    title = "บันทึกใบงานเตรียมปฏิบัติการตามรายวิชา";
+  } else if (userlogin === "แอดมิน" || userlogin === "หัวหน้าบทปฏิบัติการ") {
     title = "บันทึกใบงานเตรียมปฏิบัติการตามรายวิชา";
   }
   return (
