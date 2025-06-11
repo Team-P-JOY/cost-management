@@ -582,7 +582,7 @@ export default function Detail() {
                         </h3>
                       </div>
                       <div className="sm:col-span-4">
-                        <i>สำนักวิชา</i> : {data.course?.coursename}
+                        <i>สำนักวิชา</i> : {data.course?.facultyname}
                       </div>
                       <div className="sm:col-span-8">
                         <i>เทอมการศึกษา</i> : {data.class?.[0]?.semester}/
