@@ -2,13 +2,19 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiCheckCircle } from "react-icons/fi";
 import { useSession } from "next-auth/react";
 
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
-
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiSearch,
+  FiXCircle,
+} from "react-icons/fi";
 export default function Detail() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -107,7 +113,36 @@ export default function Detail() {
       userId: session?.user.person_id,
     });
   };
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState({ key: "", order: "asc" });
+  const processedData = useMemo(() => {
+    let result = [...filterData];
 
+    // ✅ ค้นหาเฉพาะ coursecode + coursename รวมกัน
+    if (search.trim() !== "") {
+      result = result.filter((item) => {
+        const combined = `${item.coursecode} ${item.coursename}`.toLowerCase();
+        return combined.includes(search.toLowerCase());
+      });
+    }
+
+    // ✅ sort ตาม field เดียว (แล้วแต่คุณจะระบุ)
+    if (sort.key !== "") {
+      result.sort((a, b) => {
+        const valA = a[sort.key];
+        const valB = b[sort.key];
+        if (valA === valB) return 0;
+
+        if (sort.order === "asc") {
+          return valA > valB ? 1 : -1;
+        } else {
+          return valA < valB ? 1 : -1;
+        }
+      });
+    }
+
+    return result;
+  }, [data, search, sort]);
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
     { name: "กำหนดรายวิชา", link: "/assign-course" },
@@ -244,9 +279,29 @@ export default function Detail() {
           <div className="sm:col-span-12">
             <TableList
               meta={meta}
-              data={filterData}
+              data={processedData}
               loading={loading}
               exports={false}
+              disableSearch={true}
+              customSearchSlot={
+                <div className="relative w-full max-w-xs">
+                  <input
+                    type="text"
+                    placeholder="ค้นหา..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-40 h-7 text-sm pr-8 pl-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
+                  />
+                  {search ? (
+                    <FiXCircle
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4 cursor-pointer"
+                      onClick={() => setSearch("")}
+                    />
+                  ) : (
+                    <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4" />
+                  )}
+                </div>
+              }
             />
           </div>
         </div>

@@ -7,7 +7,7 @@ import {
 } from "react-icons/fi";
 import TableListExport from "./TableListExport";
 
-const TableList = ({ data, meta, loading, exports }) => {
+const TableList = ({ data, meta, loading, exports, disableSearch,customSearchSlot  }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "" });
@@ -111,15 +111,13 @@ const TableList = ({ data, meta, loading, exports }) => {
             <div className=" w-40">
               <button
                 className="w-40 h-7 text-sm px-3 py-1 border border-gray-300 rounded-md bg-white dark:bg-gray-800 w-full flex justify-between items-centeพ"
-                onClick={() => setIsOpen(!isOpen)}
-              >
+                onClick={() => setIsOpen(!isOpen)}>
                 <span>แสดงรายการ</span>
                 <svg
                   className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                  viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -135,8 +133,7 @@ const TableList = ({ data, meta, loading, exports }) => {
                       {meta.map((m, index) => (
                         <label
                           key={`show-${index}`}
-                          className="flex text-sm items-center m-1 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                        >
+                          className="flex text-sm items-center m-1 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={!selectedOptions.includes(index)}
@@ -159,45 +156,46 @@ const TableList = ({ data, meta, loading, exports }) => {
               onChange={(e) => {
                 updateItemsPerPage(e.target.value);
               }}
-              className="w-40 h-7 text-sm px-3 py-1 border border-gray-300 rounded-md bg-white dark:bg-gray-800"
-            >
+              className="w-40 h-7 text-sm px-3 py-1 border border-gray-300 rounded-md bg-white dark:bg-gray-800">
               <option value="10">10 รายการ/หน้า</option>
               <option value="20">20 รายการ/หน้า</option>
               <option value="50">50 รายการ/หน้า</option>
               <option value="100">100 รายการ/หน้า</option>
             </select>
           </div>
-          <div className="relative w-full max-w-xs">
-            <input
-              type="text"
-              placeholder="ค้นหา..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-40 h-7 text-sm pr-8 pl-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
-            />
-            {search ? (
-              <FiXCircle
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4 cursor-pointer"
-                onClick={() => setSearch("")}
+          {/* เพิ่มการเช็ค disableSearch */}
+          {disableSearch ? customSearchSlot : (
+            <div className="relative w-full max-w-xs">
+              <input
+                type="text"
+                placeholder="ค้นหา..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-40 h-7 text-sm pr-8 pl-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
               />
-            ) : (
-              <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4 " />
-            )}
-          </div>
+              {search ? (
+                <FiXCircle
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4 cursor-pointer"
+                  onClick={() => setSearch("")}
+                />
+              ) : (
+                <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4 " />
+              )}
+            </div>
+          )}
         </div>
       </div>
+
       <div className="flex flex-col overflow-x-auto">
         <div className="overflow-x-auto">
           <table
             id="myTable"
-            className="min-w-full rounded-lg text-left text-sm"
-          >
+            className="min-w-full rounded-lg text-left text-sm">
             <thead>
               <tr className="border-y border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-gray-700">
                 <th
                   width="40"
-                  className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-600"
-                >
+                  className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-600">
                   <p className="flex items-center justify-center opacity-70">
                     #
                   </p>
@@ -207,8 +205,7 @@ const TableList = ({ data, meta, loading, exports }) => {
                     <th
                       key={`header-${index}`}
                       width={m.width || ""}
-                      className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-600"
-                    >
+                      className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-600">
                       {m.sort === false ? (
                         <p className="flex items-center justify-center gap-1">
                           {m.content}
@@ -225,8 +222,7 @@ const TableList = ({ data, meta, loading, exports }) => {
                             } else {
                               setSort({ key: m.key, order: "asc" });
                             }
-                          }}
-                        >
+                          }}>
                           {m.content}
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -234,13 +230,11 @@ const TableList = ({ data, meta, loading, exports }) => {
                             viewBox="0 0 24 24"
                             strokeWidth="2"
                             stroke="currentColor"
-                            className="w-4 h-4"
-                          >
+                            className="w-4 h-4">
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
-                            ></path>
+                              d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"></path>
                           </svg>
                         </p>
                       )}
@@ -254,8 +248,7 @@ const TableList = ({ data, meta, loading, exports }) => {
                 [...Array(5)].map((_, index) => (
                   <tr
                     key={`loading-${index}`}
-                    className="border-b border-gray-200 dark:border-gray-700"
-                  >
+                    className="border-b border-gray-200 dark:border-gray-700">
                     <td className="p-3 text-center">
                       <div className="animate-pulse bg-gray-300 dark:bg-gray-700 h-4 w-8 mx-auto rounded-md"></div>
                     </td>
@@ -276,8 +269,7 @@ const TableList = ({ data, meta, loading, exports }) => {
                   return (
                     <tr
                       key={item.id || currentRow}
-                      className="border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                    >
+                      className="border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800">
                       <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-gray-900 dark:text-gray-300">
                         {currentRow}
                       </td>
@@ -288,8 +280,7 @@ const TableList = ({ data, meta, loading, exports }) => {
                             className={[
                               "border border-gray-200 dark:border-gray-700 p-2 text-gray-900 dark:text-gray-300",
                               m.className || "",
-                            ].join(" ")}
-                          >
+                            ].join(" ")}>
                             {m.render
                               ? m.render(item)
                               : item[m.key] || (
@@ -310,8 +301,7 @@ const TableList = ({ data, meta, loading, exports }) => {
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="w-16 h-16 mb-2 text-gray-300 dark:text-gray-500"
-                        viewBox="0 0 32 32"
-                      >
+                        viewBox="0 0 32 32">
                         <path
                           fill="currentColor"
                           d="M6 8h10v2H6zm0 4h8v2H6zm0 4h4v2H6z"
@@ -333,7 +323,6 @@ const TableList = ({ data, meta, loading, exports }) => {
           </table>
         </div>
       </div>
-
       <div className="flex items-center justify-between py-3">
         <p className="text-sm text-gray-500 dark:text-gray-300">
           ทั้งหมด {data.length} รายการ
@@ -346,8 +335,7 @@ const TableList = ({ data, meta, loading, exports }) => {
             <button
               className="border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-600 rounded-md disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-            >
+              disabled={currentPage === 1}>
               <FiChevronLeft className="w-4 h-4" />
             </button>
             <button
@@ -355,8 +343,7 @@ const TableList = ({ data, meta, loading, exports }) => {
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-              disabled={currentPage === totalPages}
-            >
+              disabled={currentPage === totalPages}>
               <FiChevronRight className="w-4 h-4" />
             </button>
           </div>

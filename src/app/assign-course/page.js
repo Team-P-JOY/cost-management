@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
 import Content from "@/components/Content";
@@ -8,8 +9,16 @@ import TableList from "@/components/TableList";
 import axios from "axios";
 import { navigation } from "@/lib/params";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiSearch,
+  FiXCircle,
+} from "react-icons/fi";
 
 export default function List() {
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState({ key: "", order: "asc" });
   const searchParams = useSearchParams();
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
@@ -86,7 +95,7 @@ export default function List() {
       ),
     },
     {
-      key: "coursecode",
+      key: "coursename",
       content: "รายวิชา",
       render: (item) => (
         <div className="flex flex-col">
@@ -174,6 +183,34 @@ export default function List() {
       ),
     },
   ];
+  const processedData = useMemo(() => {
+    let result = [...data.data];
+
+    // ✅ ค้นหาเฉพาะ coursecode + coursename รวมกัน
+    if (search.trim() !== "") {
+      result = result.filter((item) => {
+        const combined = `${item.coursecode} ${item.coursename}`.toLowerCase();
+        return combined.includes(search.toLowerCase());
+      });
+    }
+
+    // ✅ sort ตาม field เดียว (แล้วแต่คุณจะระบุ)
+    if (sort.key !== "") {
+      result.sort((a, b) => {
+        const valA = a[sort.key];
+        const valB = b[sort.key];
+        if (valA === valB) return 0;
+
+        if (sort.order === "asc") {
+          return valA > valB ? 1 : -1;
+        } else {
+          return valA < valB ? 1 : -1;
+        }
+      });
+    }
+
+    return result;
+  }, [data, search, sort]);
 
   return (
     <Content
@@ -186,7 +223,7 @@ export default function List() {
           </div>
           <div className="flex gap-4">
             <div className="flex gap-2 items-center">
-              <label className={className.label}>ปีการศึกษา :</label>
+              <label className={className.label}>ปีการศึกษา1 :</label>
               <select
                 value={schId}
                 onChange={(e) => {
@@ -218,7 +255,36 @@ export default function List() {
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <TableList meta={meta} data={data.data} loading={loading} />
+            <>
+              {/* ช่องค้นหา */}
+
+              {/* ตาราง */}
+              <TableList
+                meta={meta}
+                data={processedData}
+                loading={loading}
+                disableSearch={true}
+                customSearchSlot={
+                  <div className="relative w-full max-w-xs">
+                    <input
+                      type="text"
+                      placeholder="ค้นหา..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-40 h-7 text-sm pr-8 pl-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
+                    />
+                    {search ? (
+                      <FiXCircle
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4 cursor-pointer"
+                        onClick={() => setSearch("")}
+                      />
+                    ) : (
+                      <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4" />
+                    )}
+                  </div>
+                }
+              />
+            </>
           )}
         </div>
       </div>
