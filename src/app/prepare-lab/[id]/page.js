@@ -12,7 +12,8 @@ import { useSession } from "next-auth/react";
 export default function Page() {
   const breadcrumb = [
     { name: "รายวิชา", link: "/prepare-lab" },
-    { name: "ใบเตรียมปฏิบัติการ" },
+
+    { name: "ใบงานตรียมปฏิบัติการ" },
   ];
   const router = useRouter(); // Get the router object
   const { data: session } = useSession();
@@ -174,7 +175,7 @@ export default function Page() {
     });
   }
   return (
-    <Content breadcrumb={breadcrumb} title="เตรียมปฏิบัติการ">
+    <Content breadcrumb={breadcrumb} title="ใบงานเตรียมปฏิบัติการ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="flex gap-1 p-2">
           {/* <button
@@ -187,53 +188,36 @@ export default function Page() {
           <span className="flex-1"></span>
         </div>
         <div className="p-2 border-b border-gray-200 items-center">
-          <div className="flex gap-1 justify-center items-center p-2">
-            <h3 className="font-semibold text-lg">ใบเตรียมปฏิบัติการ</h3>
+          <div className="flex gap-1 justify-centerp-2 pl-2">
+            <h3 className="font-semibold text-lg">ใบงานเตรียมปฏิบัติการ</h3>
           </div>
-          <div className="flex gap-1 justify-center items-center p-1 border-b border-gray-200"></div>
-          <div className="flex gap-1 justify-left items-left p-1 border-b font-semibold">
-            <p className="text-lg text-gray-600">
-              รายวิชา : {datacourse ? datacourse.courseunicode : " "}{" "}
-              {datacourse ? datacourse.coursename : " "}
-            </p>
-            {/* <p className="text-lg text-gray-600">
-                {" "}
-                ({datacourse ? datacourse.coursenameeng : " "})
-              </p> */}
+
+          <div className="grid grid-cols-12 gap-2 pl-2">
+            <div className="sm:col-span-12">
+              <p className="text-lg text-gray-600">
+                รายวิชา : {datacourse ? datacourse.courseunicode : " "}{" "}
+                {datacourse ? datacourse.coursename : " "}{" "}
+                {datacourse ? datacourse.coursenameeng : " "}
+              </p>
+            </div>
+            <div className="sm:col-span-4">
+              ปีการศึกษา : {datacourse?.semester} / {datacourse?.acadyear}{" "}
+              {datacourse ? datacourse.labgroupName : " "}
+            </div>
+            <div className="sm:col-span-2">
+              <i>จำนวน Section </i> :{" "}
+              <strong>{datacourse ? datacourse.labSection : " "}</strong>{" "}
+              Section
+            </div>
+            <div className="sm:col-span-2">
+              <i>จำนวนห้อง</i> : <strong>{datacourse?.labroom ?? "-"}</strong>{" "}
+              ห้อง
+            </div>
+            <div className="sm:col-span-2">
+              <i>จำนวนนักศึกษา </i> :{" "}
+              <strong>{datacourse ? datacourse.enrollseat : " "}</strong> คน
+            </div>
           </div>
-          {/* <div className="flex gap-1 justify-left items-left p-1 border-gray-200 ">
-            <p className="text-lg text-gray-900 p-2 font-semibold">
-              จำนวน Section ที่เปิดให้บริการ
-            </p>
-          </div> */}
-          <div className="flex gap-1 justify-left items-left  ps-2 border-gray-200 p-1">
-            <p className="text-lg text-gray-700 font-medium">
-              {/* {datacourse ? datacourse.labSection : " "} */}
-              ปีการศึกษา : 2/2568
-              <span> </span>
-              {/* กลุ่ม จำนวน <span>
-                {datacourse ? datacourse.labroom : " "}
-              </span>{" "} */}
-            </p>
-            <p className="text-lg text-gray-700 font-medium">
-              {" "}{datacourse ? datacourse.labgroupName : " "}
-            </p>
-          </div>
-          {/* <div className="flex gap-1 justify-left items-left p-1 border-gray-200">
-            <p className="text-lg text-gray-900 p-2 font-medium">
-              วันและเวลาเรียน
-            </p>
-          </div>
-          <div className="flex gap-1 justify-left items-left  ps-16 border-gray-200 ">
-            <p className="text-lg text-gray-700 ">
-              วันพฤหัสบดี เวลา 03.00 - 16.00 น. จำนวน 2 ห้องปฏิบัติการ(เคมี 3-4)
-            </p>
-          </div> */}
-          {/* <div className="flex gap-1 justify-left items-left pt-6 border-b font-semibold">
-            <h3 className="text-xl text-gray-900 p-2 boder">
-              รายการเตรียมปฏิบัติการ
-            </h3>
-          </div> */}
           <div className="p-2 mr-4 flex justify-end items-center">{button}</div>
         </div>
         <div className="p-2 overflow-auto responsive">

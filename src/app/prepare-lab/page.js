@@ -15,7 +15,10 @@ export default function Page() {
   const userlogin = session?.user.userRole;
   const userIdlogin = session?.user.person_id;
   console.log("userIdlogin", userlogin);
-  const breadcrumb = [{ name: "รายวิชา", link: "/prepare-lab" }];
+  const breadcrumb = [
+    { name: "บันทึกใบงานเตรียมปฏิบัติการ" },
+    { name: "รายการรายวิชา", link: "/prepare-lab" },
+  ];
   const searchParams = useSearchParams();
   const initialSchId = searchParams.get("schId") || ""; // Get schId from URL
   const [loading, setLoading] = useState(true);
@@ -214,18 +217,20 @@ export default function Page() {
 
   let title;
   if (userlogin === "หัวหน้าบทปฏิบัติการ") {
-    title = "ใบงานปฏิบัติการตามรายวิชา";
+    title = "การใช้ทรัพยากรและอุปกรณ์ชำรุด";
   } else if (userlogin === "แอดมิน") {
-    title = "บันทึกใบงานเตรียมปฏิบัติการตามรายวิชา";
+    title = "บันทึกใบงานเตรียมปฏิบัติการและแผนการใช้ทรัพยากร";
   } else if (userlogin === "แอดมิน" || userlogin === "หัวหน้าบทปฏิบัติการ") {
-    title = "บันทึกใบงานเตรียมปฏิบัติการตามรายวิชา";
+    title = "การใช้ทรัพยากรและอุปกรณ์ชำรุด";
   }
   return (
     <Content breadcrumb={breadcrumb} title={title}>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <div>
-            <h3 className="font-semibold text-lg">{title}</h3>
+            <h3 className="font-semibold text-lg">
+              รายการรายวิชาเตรียมปฏิบัติการ
+            </h3>
           </div>
 
           <div className=" gap-1  justify-end">
@@ -238,6 +243,9 @@ export default function Page() {
                 className="border border-gray-500 p-2 rounded-lg w-full"
                 value={schId}
                 onChange={(e) => setSchId(e.target.value)}>
+                <option value="" disabled>
+                  กรุณาเลือก
+                </option>
                 {schYears.map((item) => (
                   <option key={item.schId} value={item.schId}>
                     {item.semester} / {item.acadyear}

@@ -125,7 +125,7 @@ export default function List() {
         <div className="flex flex-col">
           <p className="block">จำนวนกลุ่มเรียน : {item.section} กลุ่ม</p>
           <p className="block opacity-70">
-            จำนวนนักศึกษา : {item.totalseat} คน
+            จำนวนนักศึกษา : {item.enrollseat} คน | {item.totalseat} ที่นั่ง
           </p>
         </div>
       ),
@@ -157,7 +157,7 @@ export default function List() {
     },
     {
       key: "labId",
-      content: "Action",
+      content: "จัดการ",
       width: "100",
       sort: false,
       export: false,
@@ -219,11 +219,11 @@ export default function List() {
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between">
           <div>
-            <h3 className="font-semibold ">กำหนดรายวิชา</h3>
+            <h3 className="font-semibold ">รายการรายวิชาที่กำหนด</h3>
           </div>
           <div className="flex gap-4">
             <div className="flex gap-2 items-center">
-              <label className={className.label}>ปีการศึกษา1 :</label>
+              <label className={className.label}>ปีการศึกษา :</label>
               <select
                 value={schId}
                 onChange={(e) => {
@@ -232,7 +232,7 @@ export default function List() {
                 }}
                 className="block bg-white px-4 py-2 border rounded-md dark:bg-gray-800">
                 <option value="" disabled>
-                  เลือกเทอมการศึกษา
+                  กรุณาเลือก
                 </option>
                 {data.semester.map((item) => (
                   <option key={item.schId} value={item.schId}>
@@ -246,7 +246,7 @@ export default function List() {
               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={_onPressAdd}>
               <FiPlus className="w-4 h-4" />
-              เพิ่มใหม่
+              เพิ่มรายวิชา
             </button>
           </div>
         </div>

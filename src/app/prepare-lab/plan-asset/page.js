@@ -345,7 +345,7 @@ export default function Detail() {
   };
 
   const breadcrumb = [
-    // { name: "แผนการให้บริการห้องปฎิบัติการ" },
+    { name: "แผนการให้บริการห้องปฎิบัติการ" },
     { name: "ใบงานปฏิบัติการตามรายวิชา", link: "/prepare-lab" },
     { name: isNew ? "เพิ่มใหม่" : "เพิ่มข้อมูล" },
   ];
@@ -528,7 +528,7 @@ export default function Detail() {
                                       </div>
                                     </div>
                                     <div className="text-sm">
-                                      Remark : {item.assetRemark || "-"}
+                                      หมายเหตุ : {item.assetRemark || "-"}
                                     </div>
                                   </div>
                                 ),
@@ -648,7 +648,7 @@ export default function Detail() {
                                       </div>
                                     </div>
                                     <div className="text-sm">
-                                      Remark : {item.assetRemark || "-"}
+                                      หมายเหตุ : {item.assetRemark || "-"}
                                     </div>
                                   </div>
                                 ),
@@ -768,7 +768,7 @@ export default function Detail() {
                                       </div>
                                     </div>
                                     <div className="text-sm">
-                                      Remark : {item.assetRemark || "-"}
+                                      หมายเหตุ : {item.assetRemark || "-"}
                                     </div>
                                   </div>
                                 ),
@@ -875,7 +875,8 @@ export default function Detail() {
                     <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
                       <div className="sm:col-span-12">
                         <label className={className.label}>
-                          วัสดุที่เลือกใช้
+                          วัสดุที่เลือกใช้ : แผนการใช้ทรัพยากรรายวิชา{" "}
+                          {data.course?.coursecode} {data.course?.coursename}
                         </label>
 
                         <AutocompleteSelect2
@@ -946,7 +947,7 @@ export default function Detail() {
                         />
                       </div>
                       <div className="sm:col-span-12">
-                        <label className={className.label}>Remark</label>
+                        <label className={className.label}>หมายเหตุ</label>
                         <input
                           type="text"
                           name="assetRemark"

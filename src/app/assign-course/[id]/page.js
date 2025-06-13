@@ -727,7 +727,7 @@ export default function Detail() {
 
                             <div className="sm:col-span-4">
                               <label className={className.label}>
-                                จำนวนชั่วโมงเรียน
+                                รวมจำนวนชั่วโมงเรียน/ภาคการศึกษา
                               </label>
                               <input
                                 type="number"
