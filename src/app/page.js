@@ -10,9 +10,14 @@ import Content from "@/components/Content";
 import ExportButton from "@/components/ExportButton";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-// import { useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import TableList from "@/components/TableList";
+
 export default function Dashboard() {
+  const { data: session } = useSession();
+  console.log("session", session);
+  const userlogin = session?.user.userRole;
+  const userIdlogin = session?.user.person_id;
   const [academicYears, setAcademicYears] = useState([]);
   const [labGroups, setLabGroups] = useState([]);
   const [selectedSchId, setSelectedSchId] = useState("");
@@ -82,8 +87,14 @@ export default function Dashboard() {
       );
       const result = await response.json();
       console.log("ผลลัพธ์:", result.data);
-      if (result.data) {
+      console.log("userIdlogin:", userIdlogin);
+      const filteredData = result.data.filter(
+        (item) => item.personId == userIdlogin
+      );
+      if (userlogin === "แอดมิน") {
         setSearchResults(result.data);
+      } else if (filteredData && filteredData.length > 0) {
+        setSearchResults(filteredData);
       }
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);

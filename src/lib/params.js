@@ -120,7 +120,7 @@ const navigation = [
         id: 22,
         name: "บันทึกการใช้ทรัพยากรตามใบงาน",
         icon: FiChevronsRight,
-        href: "/prepare-lab",
+        href: "/prepare-labu",
       },
       // {
       //   name: "บันทึกการใช้ทรัพยากรตามใบงาน",
