@@ -35,8 +35,8 @@ export const authOptions = {
               ,U.ROLE
               ,R.ROLE_NAME
               ,R.ROLE_ACCESS
-              U.LABGROUP_ID AS labgroup_id,
-              LG.LABGROUP_NAME AS labgroup_name
+              ,U.LABGROUP_ID
+              ,LG.LABGROUP_NAME
             FROM CST_USER U
             INNER JOIN CST_ROLE R 
               ON U.ROLE = R.ROLE_ID
@@ -52,8 +52,8 @@ export const authOptions = {
             return null;
           }
 
-          userInfo.labgroupId = user[0].labgroup_id;
-          userInfo.labgroupName = user[0].labgroup_name;
+          userInfo.labgroupId = user[0].labgroupId;
+          userInfo.labgroupName = user[0].labgroupName;
 
           return {
             id: user[0].id,
