@@ -8,6 +8,7 @@ import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 import axios from "axios";
 import { navigation } from "@/lib/params";
+import { useSession } from "next-auth/react";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import {
   FiChevronLeft,
@@ -19,6 +20,11 @@ import {
 export default function List() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "asc" });
+  const { data: session } = useSession();
+  const labgroupName = session?.user.userInfo.labgroupName;
+  const userlogin = session?.user.userRole;
+  const userIdlogin = session?.user.person_id;
+  console.log("userlogin", userlogin, userIdlogin, labgroupName);
   const searchParams = useSearchParams();
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
@@ -184,9 +190,17 @@ export default function List() {
     },
   ];
   const processedData = useMemo(() => {
-    let result = [...data.data];
+    let result = [];
+    if (userlogin === "แอดมิน") {
+      result = data.data;
+    } else if (userlogin === "หัวหน้าฝ่าย") {
+      result = data.data.filter((item) => {      
+        return (
+          item.userCreated == userIdlogin || item.labgroupName === labgroupName
+        );
+      });
+    }
 
-    // ✅ ค้นหาเฉพาะ coursecode + coursename รวมกัน
     if (search.trim() !== "") {
       result = result.filter((item) => {
         const combined = `${item.coursecode} ${item.coursename}`.toLowerCase();

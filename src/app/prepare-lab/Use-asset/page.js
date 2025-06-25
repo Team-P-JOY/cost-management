@@ -419,8 +419,8 @@ export default function Detail() {
 
   const breadcrumb = [
     // { name: "แผนการให้บริการห้องปฎิบัติการ" },
-    { name: "รายการรายวิชา", link: "/prepare-lab" },
-    { name: "ใบงานตรียมปฏิบัติการ", link: "/prepare-lab/new?labId=" + labId },
+    { name: "รายการรายวิชา", link: "/prepare-labu" },
+    { name: "ใบงานตรียมปฏิบัติการ", link: "/prepare-labu/new?labId=" + labId },
     { name: isNew ? "เพิ่มการใช้ทรัพยากร" : "เพิ่มการใช้ทรัพยากร" },
   ];
 

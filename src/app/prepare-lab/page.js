@@ -11,7 +11,8 @@ import { useSession } from "next-auth/react";
 export default function Page() {
   const router = useRouter(); // Get the router object
   const { data: session } = useSession();
-  //console.log("session", session);
+  const labgroupName = session?.user.userInfo.labgroupName;
+
   const userlogin = session?.user.userRole;
   const userIdlogin = session?.user.person_id;
   console.log("userIdlogin", userlogin);
@@ -58,10 +59,20 @@ export default function Page() {
           params: { schId, userIdlogin, userlogin },
         });
 
-        const data = response.data;
-        //console.log("lab", data);
+        // const data = response.data;
         if (response.data.success) {
-          setLab(response.data.data || []); // Access `data.data`
+          let labData = [];
+          if (userlogin === "แอดมิน") {
+            labData = response.data.data;
+          } else if (userlogin === "หัวหน้าฝ่าย") {
+            labData = response.data.data.filter((item) => {
+              return (
+                item.userCreated == userIdlogin ||
+                item.labgroupName === labgroupName
+              );
+            });
+          }
+          setLab(labData || []); // Access `data.data`
         } else {
           setLab([]); // Ensure it's always an array
         }
@@ -78,7 +89,7 @@ export default function Page() {
 
     fetchData();
   }, [schId]);
-
+  const hl = "จัดการ";
   const meta = [
     {
       key: "courseunicode",
@@ -161,7 +172,7 @@ export default function Page() {
   ) {
     meta.push({
       key: "labId",
-      content: "จัดการ",
+      content: hl,
       width: "270",
       className: "text-center",
       render: (item) => {
@@ -173,7 +184,8 @@ export default function Page() {
 
         if (!isOwner) {
           if (isCoordinator || isAdmin || isDeptHead) {
-            return "-";
+            return item.labgroupName;
+            hl = "ฝ่าย";
           }
           return null;
         }
@@ -195,25 +207,11 @@ export default function Page() {
                 </button>
               </>
             )}
-
-            {(isAdmin || isLabChief) && (
-              <button
-                className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200"
-                onClick={() => _onPressAdd(item.labId)}>
-                การใช้ทรัพยากรและอุปกรณ์ชำรุด
-              </button>
-            )}
           </div>
         );
       },
     });
   }
-
-  // else {
-  //   <div className="cursor-pointer items-center justify-center flex gap-1">
-  //     {"-"}
-  //   </div>;
-  // }
 
   let title;
   if (userlogin === "หัวหน้าบทปฏิบัติการ") {

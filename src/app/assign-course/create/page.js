@@ -73,25 +73,7 @@ export default function Detail() {
     fetchData();
   }, [facultyId, schId]);
 
-  // const handleCreate = async (courseid) => {
-  //   const term = data.term.find((item) => item.schId == schId);
-  //   const section = filterData.find(
-  //     (item) => item.courseid === courseid
-  //   )?.section;
-  //   const response = await axios.post(`/api/assign-course`, {
-  //     courseid: courseid,
-  //     schId: schId,
-  //     acadyear: term.acadyear,
-  //     semester: term.semester,
-  //     section,
-  //     userId: session?.user.person_id,
-  //   });
-
-  //   const res = response.data;
-  //   if (res.success) {
-  //     router.push(`/assign-course/${res.labId}`);
-  //   }
-  // };
+  
   const handleCreate = async (courseid) => {
     const term = data.term.find((item) => item.schId == schId);
     const section = filterData.find(
@@ -118,7 +100,7 @@ export default function Detail() {
   const processedData = useMemo(() => {
     let result = [...filterData];
 
-    // ✅ ค้นหาเฉพาะ coursecode + coursename รวมกัน
+   
     if (search.trim() !== "") {
       result = result.filter((item) => {
         const combined = `${item.coursecode} ${item.coursename}`.toLowerCase();
@@ -126,7 +108,7 @@ export default function Detail() {
       });
     }
 
-    // ✅ sort ตาม field เดียว (แล้วแต่คุณจะระบุ)
+    
     if (sort.key !== "") {
       result.sort((a, b) => {
         const valA = a[sort.key];

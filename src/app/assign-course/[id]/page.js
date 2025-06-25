@@ -24,6 +24,10 @@ const roleList = [
   { roleId: "1", roleName: "นักวิทยาศาสตร์" },
   { roleId: "2", roleName: "พนักงานวิทยาศาสตร์" },
   { roleId: "3", roleName: "พนักงานห้องทดลอง" },
+  { roleId: "4", roleName: "นายช่างเทคนิค" },
+  { roleId: "5", roleName: "วิศวกร" },
+  { roleId: "6", roleName: "พนักงานธุรการ" },
+  { roleId: "7", roleName: "เจ้าหน้าที่บริหารงานทั่วไป" },
 ];
 
 export default function Detail() {

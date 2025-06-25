@@ -17,6 +17,8 @@ export default function Page() {
   ];
   const router = useRouter(); // Get the router object
   const { data: session } = useSession();
+  console.log("session", session, session?.user.userRole);
+
   const userlogin = session?.user.userRole;
   const userloginId = session?.user.person_id;
   const [loading, setLoading] = useState(true);
@@ -122,26 +124,7 @@ export default function Page() {
       },
     },
   ];
-  let button;
-  if (userlogin === "หัวหน้าบทปฏิบัติการ" || labjob.length > 0) {
-    button = " ";
-    meta.push({
-      key: "labjobId",
-      content: "จัดการ",
-      width: "200",
-      className: "text-center",
-      render: (item) => (
-        <div className="cursor-pointer items-center justify-center flex gap-1">
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressAsset(item.labId, item.labjobId)}>
-            <FiEdit className="w-4 h-4" />
-            การใช้ทรัพยากร
-          </button>
-        </div>
-      ),
-    });
-  } else {
+  let button;  
     button = (
       <button
         className="cursor-pointer p-3 text-white text-sm bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
@@ -173,7 +156,7 @@ export default function Page() {
         </div>
       ),
     });
-  }
+  
   return (
     <Content breadcrumb={breadcrumb} title="ใบงานเตรียมปฏิบัติการ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">

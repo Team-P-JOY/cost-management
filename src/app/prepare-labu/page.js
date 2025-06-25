@@ -154,11 +154,7 @@ export default function Page() {
     },
   ];
 
-  if (
-    userlogin === "ผู้ประสานงานรายวิชา" ||
-    userlogin === "แอดมิน" ||
-    userlogin === "หัวหน้าฝ่าย"
-  ) {
+  if (userlogin === "หัวหน้าบทปฏิบัติการ") {
     meta.push({
       key: "labId",
       content: "จัดการ",
@@ -170,13 +166,6 @@ export default function Page() {
         const isCoordinator = userlogin === "ผู้ประสานงานรายวิชา";
         const isDeptHead = userlogin === "หัวหน้าฝ่าย";
         const isLabChief = userlogin === "หัวหน้าบทปฏิบัติการ";
-
-        if (!isOwner) {
-          if (isCoordinator || isAdmin || isDeptHead) {
-            return "-";
-          }
-          return null;
-        }
 
         // ถ้าเป็นเจ้าของ (isOwner === true)
         return (
