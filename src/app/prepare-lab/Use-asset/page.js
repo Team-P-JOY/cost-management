@@ -28,8 +28,9 @@ export default function Detail() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const idParam = searchParams.get("id");
+  const idParam = searchParams.get("labId");
   const labjobId = searchParams.get("labjobId");
+
   const labId = parseInt(idParam, 10);
   const isNew = labId === "new";
   const [loading, setLoading] = useState(false);
@@ -329,8 +330,10 @@ export default function Detail() {
     setLoading(true);
     try {
       if (!isNew) {
+        console.log("labId:", labId, "labjobId:", labjobId);
+
         const response = await axios.get(
-          `/api/use-asset?id=${labId}&labjobId=${searchParams.get("labjobId")}`
+          `/api/use-asset?id=${labId}&labjobId=${labjobId}`
         );
         const data = response.data;
         if (data.success) {
@@ -420,7 +423,7 @@ export default function Detail() {
   const breadcrumb = [
     // { name: "แผนการให้บริการห้องปฎิบัติการ" },
     { name: "รายการรายวิชา", link: "/prepare-labu" },
-    { name: "ใบงานตรียมปฏิบัติการ", link: "/prepare-labu/new?labId=" + labId },
+    { name: "ใบงานตรียมปฏิบัติการ", link: "/prepare-lab/new?labId=" + labId },
     { name: isNew ? "เพิ่มการใช้ทรัพยากร" : "เพิ่มการใช้ทรัพยากร" },
   ];
 
@@ -612,10 +615,11 @@ export default function Detail() {
     });
     await _callInvent(type, labId, extraFlag);
   };
-  const assetOptions = invent.map((inv) => ({
+  const assetOptions = invent.map((inv, index) => ({
     label: `${inv.assetNameTh} ${inv.amountUnit} (${inv.unitName})`,
-    value: inv.assetId,
+    value: `${inv.assetId}-${index}`,
   }));
+
   return (
     <Content
       breadcrumb={breadcrumb}

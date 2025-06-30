@@ -154,7 +154,7 @@ export default function Page() {
     },
   ];
 
-  if (userlogin === "หัวหน้าบทปฏิบัติการ") {
+  if (userlogin === "หัวหน้าบทปฏิบัติการ" || userlogin === "แอดมิน") {
     meta.push({
       key: "labId",
       content: "จัดการ",
@@ -162,10 +162,6 @@ export default function Page() {
       className: "text-center",
       render: (item) => {
         const isOwner = String(item.personId) === String(userIdlogin);
-        const isAdmin = userlogin === "แอดมิน";
-        const isCoordinator = userlogin === "ผู้ประสานงานรายวิชา";
-        const isDeptHead = userlogin === "หัวหน้าฝ่าย";
-        const isLabChief = userlogin === "หัวหน้าบทปฏิบัติการ";
 
         // ถ้าเป็นเจ้าของ (isOwner === true)
         return (

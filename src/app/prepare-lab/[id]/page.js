@@ -4,23 +4,63 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Content from "@/components/Content";
-import { FiPlus, FiEdit, FiTrash2, FiChevronLeft } from "react-icons/fi";
+import { FiPlus, FiEdit, FiTrash2, FiCopy } from "react-icons/fi";
 import TableList from "@/components/TableList";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/react";
 
 export default function Page() {
-  const breadcrumb = [
-    { name: "รายวิชา", link: "/prepare-lab" },
-
-    { name: "ใบงานตรียมปฏิบัติการ" },
-  ];
-  const router = useRouter(); // Get the router object
   const { data: session } = useSession();
-  console.log("session", session, session?.user.userRole);
-
   const userlogin = session?.user.userRole;
+
   const userloginId = session?.user.person_id;
+  let breadcrumb = [];
+  switch (userlogin) {
+    case "หัวหน้าบทปฏิบัติการ":
+      breadcrumb = [
+        { name: "รายการรายวิชา", link: "/prepare-labu" },
+        { name: "ใบงานเตรียมปฏิบัติการ" },
+      ];
+      break;
+    case "แอดมิน":
+      breadcrumb = [
+        { name: "รายการรายวิชา", link: "/prepare-lab" },
+        { name: "ใบงานเตรียมปฏิบัติการ" },
+      ];
+      break;
+    default:
+      breadcrumb = [
+        { name: "หน้าหลัก" },
+        { name: "รายการรายวิชา", link: "/prepare-lab" },
+      ];
+  }
+
+  const copylabjob = [
+    {
+      id: 1,
+      subjectCode: "การทดลองที่ 1 การเตรียมสารละลาย-212",
+      subjectName: "นางจรรยพร ขาวคง",
+    },
+    {
+      id: 2,
+      subjectCode: "การทดลองที่ 2 การเตรียมสารละลาย-212",
+      subjectName: "นางสาวณัฏฐนริน สมจิตร",
+    },
+    {
+      id: 3,
+      subjectCode: "การทดลองที่ 3 การเตรียมสารละลาย-212",
+      subjectName: "ญาปกา",
+    },
+  ];
+
+  const router = useRouter(); 
+  const [CopyLabjobModal, setCopyLabjob] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reload, setReload] = useState(0);
@@ -29,7 +69,22 @@ export default function Page() {
   const [datacourse, setDatacourse] = useState(null);
   const searchParams = useSearchParams();
   const labId = searchParams.get("labId") || "";
-  //console.log(labId);
+  
+  const meta2 = [
+    {
+      key: "รหัสวิชา",
+      content: "ใบงานเตรียมปฏิบัติการ",
+      className: "text-left",
+      render: (item) => item.subjectCode,
+    },
+    {
+      key: "subjectName",
+      content: "หัวหน้าบทปฏิบัติการ",
+      className: "text-left",
+      render: (item) => item.subjectName,
+    },
+  ];
+
   const _onPressAdd = (labId) => {
     if (!labId) {
       alert("labId ไม่ถูกต้อง");
@@ -39,17 +94,20 @@ export default function Page() {
       `/prepare-lab/worksheet?labId=${labId}&labjobId=new&sId=${sId}`
     );
   };
-  const _onPressAsset = (labId, labjobId) => {
-    console.log("labId", labId);
-    console.log("labjobId", labjobId);
+  const _onPressAddu = (labId, labjob) => {
     if (!labId) {
       alert("labId ไม่ถูกต้อง");
       return;
     }
-    //  router.push(
-    //    `/prepare-lab/worksheet?labId=${labId}&labjobId=new&sId=${sId}`
-    //  );
-    router.push(`/prepare-lab/Use-asset?id=${labId}&labjobId=${labjobId}`);
+    router.push(
+      `/prepare-lab/Use-asset?labId=${labId}&labjobId=${labjob}&sId=${sId}`
+    );
+  };
+  const _onCloseInventForm = (status) => {
+    setCopyLabjob(status);
+  };
+  const _onPressAddCoopy = () => {
+    setCopyLabjob(true);
   };
   const _onPressEdit = (labjobId) => {
     if (!labjobId) {
@@ -124,58 +182,90 @@ export default function Page() {
       },
     },
   ];
-  let button;  
-    button = (
+  let button;
+  button = (
+    <button
+      className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+      onClick={() => _onPressAdd(labId)}
+      disabled={!labId}>
+      <FiPlus className="w-4 h-4" />
+      เพิ่มใบงานเตรียมปฏิบัติการ
+    </button>
+  );
+  let button2;
+  button2 = (
+    <div className="p-2 mr-2 flex justify-end items-center">
       <button
-        className="cursor-pointer p-3 text-white text-sm bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
-        onClick={() => _onPressAdd(labId)}
-        disabled={!labId}>
-        <FiPlus className="w-4 h-4" />
-        เพิ่มใบงานเตรียมปฏิบัติการ
+        type="button"
+        className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+        onClick={() => _onPressAddCoopy()}>
+        <FiCopy className="w-4 h-4" />
+        คัดลอก
       </button>
-    );
-    meta.push({
-      key: "labjobId",
-      content: "จัดการใบเตรียมปฏิบัติการ",
-      width: "200",
-      className: "text-center",
-      render: (item) => (
+    </div>
+  );
+
+  meta.push({
+    key: "labjobId",
+    content: "จัดการใบเตรียมปฏิบัติการ",
+    width: "400",
+    className: "text-center",
+    render: (item) => {
+      let content;
+      if (userlogin === "หัวหน้าบทปฏิบัติการ") {
+        content = (
+          <>
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200"
+              onClick={() => _onPressAddu(item.labId, item.labjobId)}>
+              การใช้ทรัพยากรและอุปกรณ์ชำรุด
+            </button>
+            ;
+          </>
+        );
+      } else if (userlogin === "แอดมิน") {
+        content = (
+          <>
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+              onClick={() => _onPressEdit(item.labjobId)}>
+              <FiEdit className="w-4 h-4" />
+              แก้ไข
+            </button>
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+              onClick={() => _onPressDelete(item.labjobId)}>
+              <FiTrash2 className="w-4 h-4" />
+              ลบ
+            </button>
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200"
+              onClick={() => _onPressAddu(item.labId, item.labjobId)}>
+              การใช้ทรัพยากรและอุปกรณ์ชำรุด
+            </button>
+          </>
+        );
+      } else {
+        content = "-";
+      }
+
+      return (
         <div className="cursor-pointer items-center justify-center flex gap-1">
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressEdit(item.labjobId)}>
-            <FiEdit className="w-4 h-4" />
-            แก้ไข
-          </button>
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressDelete(item.labjobId)}>
-            <FiTrash2 className="w-4 h-4" />
-            ลบ
-          </button>
+          {content}
         </div>
-      ),
-    });
-  
+      );
+    },
+  });
+
   return (
     <Content breadcrumb={breadcrumb} title="ใบงานเตรียมปฏิบัติการ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-        <div className="flex gap-1 p-2">
-          {/* <button
-            type="button"
-            className="cursor-pointer p-2 text-white text-sm bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
-            onClick={() => router.back()}>
-            <FiChevronLeft className="w-4 h-4" />
-            ย้อนกลับ
-          </button> */}
-          <span className="flex-1"></span>
-        </div>
         <div className="p-2 border-b border-gray-200 items-center">
-          <div className="flex gap-1 justify-centerp-2 pl-2">
+          <div className="flex gap-1 justify-centerp-2 pl-2 border-b border-gray-200 py-3">
             <h3 className="font-semibold text-lg">ใบงานเตรียมปฏิบัติการ</h3>
           </div>
 
-          <div className="grid grid-cols-12 gap-2 pl-2">
+          <div className="grid grid-cols-12 gap-2 pl-2 pt-2">
             <div className="sm:col-span-12">
               <p className="text-lg text-gray-600">
                 รายวิชา : {datacourse ? datacourse.courseunicode : " "}{" "}
@@ -201,7 +291,10 @@ export default function Page() {
               <strong>{datacourse ? datacourse.enrollseat : " "}</strong> คน
             </div>
           </div>
-          <div className="p-2 mr-4 flex justify-end items-center">{button}</div>
+          <div className="p-2 mr-4 flex justify-end items-center">
+            {button}
+            {labjob.length === 0 ? button2 : null}
+          </div>
         </div>
         <div className="p-2 overflow-auto responsive">
           {error ? (
@@ -211,6 +304,97 @@ export default function Page() {
           )}
         </div>
       </div>
+      <Dialog
+        open={CopyLabjobModal}
+        onClose={_onCloseInventForm}
+        className="relative z-10">
+        <DialogBackdrop
+          transition
+          className="fixed inset-0 text-gray-900 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
+        />
+
+        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <DialogPanel
+              transition
+              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-full sm:max-w-4xl data-closed:sm:translate-y-0 data-closed:sm:scale-95">
+              <DialogTitle
+                as="h3"
+                className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-300 p-4 border-b border-gray-200 p-2">
+                คัดลอกใบงานเตรียมปฏิบัติการ
+              </DialogTitle>
+
+              <div className="grid gap-x-2 gap-y-2 sm:grid-cols-12">
+                <div className="sm:col-span-4 pl-6 pt-2">
+                  <span className="block text-base font-medium text-gray-900 dark:text-gray-300 py-2">
+                    ปีการศึกษา
+                  </span>
+                  <select
+                    name="schId"
+                    defaultValue=""
+                    className="block bg-white text-gray-900 dark:text-white w-full px-4 py-2 border rounded-md dark:bg-gray-800">
+                    <option value="" disabled>
+                      เลือก
+                    </option>
+                    <option>2/2567</option>
+                    <option>1/2567</option>
+                    <option>2/2566</option>
+                  </select>
+                </div>
+
+                <div className="sm:col-span-8 p-2 pr-6">
+                  <span className="block text-base font-medium text-gray-900 dark:text-gray-300 py-2 ">
+                    รายวิชา
+                  </span>
+                  <select
+                    className="block bg-white text-gray-900 dark:text-white w-full px-4 py-2 border rounded-md dark:bg-gray-800"
+                    defaultValue="">
+                    <option value="" disabled>
+                      เลือก
+                    </option>
+                    <option>
+                      BIO61-212 ปฏิบัติการจุลชีววิทยา Microbiology Laboratory
+                    </option>
+                    <option>MAC62-241 สถิติเชิงอนุมานเบื้องต้น</option>
+                    <option>CHM61-241 หลักเคมีวิเคราะห์</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="sm:col-span-12 p-2 overflow-auto">
+                <div className="p-4 overflow-auto">
+                  {error ? (
+                    <p className="text-center text-red-500">{error}</p>
+                  ) : (
+                    <TableList
+                      meta={meta2}
+                      data={copylabjob}
+                      loading={loading}
+                      exports={false}
+                      showOptions={false}
+                    />
+                  )}
+                </div>
+                <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    type="submit"
+                    onClick={() => _onCloseInventForm(false)}
+                    className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+                    คัดลอกข้อมูล
+                  </button>
+                  <button
+                    type="button"
+                    data-autofocus
+                    onClick={() => _onCloseInventForm(false)}
+                    className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                    ยกเลิก
+                  </button>
+                </div>
+              </div>
+            </DialogPanel>
+          </div>
+        </div>
+      </Dialog>
     </Content>
   );
 }

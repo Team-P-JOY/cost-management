@@ -182,15 +182,6 @@ export default function Page() {
         const isDeptHead = userlogin === "หัวหน้าฝ่าย";
         const isLabChief = userlogin === "หัวหน้าบทปฏิบัติการ";
 
-        if (!isOwner) {
-          if (isCoordinator || isAdmin || isDeptHead) {
-            return item.labgroupName;
-            hl = "ฝ่าย";
-          }
-          return null;
-        }
-
-        // ถ้าเป็นเจ้าของ (isOwner === true)
         return (
           <div className="cursor-pointer items-center justify-center flex gap-1">
             {(isAdmin || isCoordinator || isDeptHead) && (
