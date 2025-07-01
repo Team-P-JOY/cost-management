@@ -28,14 +28,20 @@ export const authOptions = {
             return null;
           }
 
+          let userInfo = userAuth.data;
+
           const user = await executeQuery(
             `SELECT U.USER_ID
               ,U.ROLE
               ,R.ROLE_NAME
               ,R.ROLE_ACCESS
+              ,U.LABGROUP_ID
+              ,LG.LABGROUP_NAME
             FROM CST_USER U
             INNER JOIN CST_ROLE R 
               ON U.ROLE = R.ROLE_ID
+            LEFT JOIN CST_LABGROUP LG 
+              ON U.LABGROUP_ID = LG.LABGROUP_ID
             WHERE U.PERSON_ID = :id 
               AND U.FLAG_DEL = 0
               AND U.STATUS_ID = 1`,
@@ -46,13 +52,16 @@ export const authOptions = {
             return null;
           }
 
+          userInfo.labgroupId = user[0].labgroupId;
+          userInfo.labgroupName = user[0].labgroupName;
+
           return {
             id: user[0].id,
             avatar: userAuth.data.avatar,
             person_id: userAuth.data.person_id,
             name: userAuth.data.fullname_th,
             username: credentials.username,
-            userInfo: userAuth.data,
+            userInfo: userInfo,
             userRole: user[0].roleName,
             userAccess: JSON.parse(user[0].roleAccess),
           };

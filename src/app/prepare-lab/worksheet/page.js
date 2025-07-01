@@ -200,116 +200,88 @@ export default function Page() {
   return (
     <Content breadcrumb={breadcrumb} title="เตรียมปฏิบัติการ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-        <div className="p-4 border-b border-gray-200 items-center">
+        <div className="p-2 border-b border-gray-200 items-center">
           <input type="hidden" name="labjobId" value="" />
-          <div className="flex gap-1 justify-center items-center p-4">
-            <h3 className="font-semibold text-2xl">ใบเตรียมปฏิบัติการ</h3>
+          <div className="flex gap-1 justify-centerp-2 pl-2 border-b border-gray-200 py-3">
+            <h3 className="font-semibold text-lg">ใบงานเตรียมปฏิบัติการ</h3>
           </div>
-          <div className="flex gap-1 justify-center items-center p-1 border-b border-gray-200">
-            <p className="text-xl text-gray-500">
-              {" "}
-              {datacourse ? datacourse.coursename : " "}
-            </p>
-            <p className="text-xl text-gray-500">
-              {" "}
-              ({datacourse ? datacourse.coursenameeng : " "})
-            </p>
+          <div className="grid grid-cols-12 gap-2 pl-2 pt-2">
+            <div className="sm:col-span-12">
+              <p className="text-lg text-gray-600">
+                รายวิชา : {datacourse ? datacourse.courseunicode : " "}{" "}
+                {datacourse ? datacourse.coursename : " "}{" "}
+                {datacourse ? datacourse.coursenameeng : " "}
+              </p>
+            </div>
+            <div className="sm:col-span-4">
+              ปีการศึกษา : {datacourse?.semester} / {datacourse?.acadyear}{" "}
+              {datacourse ? datacourse.labgroupName : " "}
+            </div>
+            <div className="sm:col-span-2">
+              <i>จำนวน Section </i> :{" "}
+              <strong>{datacourse ? datacourse.labSection : " "}</strong>{" "}
+              Section
+            </div>
+            <div className="sm:col-span-2">
+              <i>จำนวนห้อง</i> : <strong>{datacourse?.labroom ?? "-"}</strong>{" "}
+              ห้อง
+            </div>
+            <div className="sm:col-span-2">
+              <i>จำนวนนักศึกษา </i> :{" "}
+              <strong>{datacourse ? datacourse.enrollseat : " "}</strong> คน
+            </div>
           </div>
-          <div className="flex gap-1 justify-left items-left p-1 border-b font-semibold">
-            <h3 className="text-xl text-gray-900 p-2 boder">รายละเอียดวิชา</h3>
-          </div>
-          <div className="flex gap-1 justify-left items-left p-1 border-gray-200 ">
-            <p className="text-lg text-gray-900 p-2 font-medium">
-              จำนวน Section ที่เปิดให้บริการ
-            </p>
-          </div>
-          <div className="flex gap-1 justify-left items-left  ps-16 border-gray-200">
-            <p className="text-lg text-gray-700">
-              {datacourse ? datacourse.labSection : " "}
-              <span> </span>
-              Section จำนวน <span>
-                {datacourse ? datacourse.labroom : " "}
-              </span>{" "}
-              ห้องปฏิบัติการ
-            </p>
-          </div>
-          {/* <div className="flex gap-1 justify-left items-left p-1 border-gray-200">
-            <p className="text-lg text-gray-900 p-2 font-medium">
-              วันและเวลาเรียน
-            </p>
-          </div>
-          <div className="flex gap-1 justify-left items-left  ps-16 border-gray-200 ">
-            <p className="text-lg text-gray-700 ">
-              วันพฤหัสบดี เวลา 03.00 - 16.00 น. จำนวน 2 ห้องปฏิบัติการ(เคมี 3-4)
-            </p>
-          </div> */}
           <form onSubmit={handleSubmit}>
             <div className="flex gap-1 justify-left items-left pt-6 border-b font-semibold">
               <h3 className="text-xl text-gray-900 p-2 boder">
                 ข้อมูลใบเตรียมปฏิบัติการ
               </h3>
             </div>
-            <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
-              <label className="text-lg text-gray-900 font-medium w-60">
-                ชื่อใบงานเตรียมปฎิบัติการ
-              </label>
-              <input
-                name="labjobTitle"
-                value={formData.labjobTitle}
-                onChange={handleChange}
-                className="border border-gray-500 p-2 rounded-lg w-full"
-                required
-              />
-            </div>
-            <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
-              <label className="text-lg text-gray-900 font-medium w-60">
-                หัวหน้าบทปฏิบัติการ
-              </label>
-              <select
-                name="personId"
-                value={formData.personId}
-                onChange={handleChange}
-                className="border border-gray-500 p-2 rounded-lg w-full"
-                required>
-                <option value="">-เลือก-</option>
-                {data?.map((item) => (
-                  <option key={item.personId} value={item.personId}>
-                    {item.fullname}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {/* <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
-              <label className="text-lg text-gray-900 font-medium w-60">
-                หัวหน้าบทปฏิบัติการ
-              </label>
-              <select
-                name="personId"
-                value={formData.personId}
-                onChange={handleChange}
-                className="border border-gray-500 p-2 rounded-lg w-full"
-                required>
-                <option value="">- เลือก -</option>
-                {subData.map((person) => (
-                  <option key={person.personId} value={person.personId}>
-                    {person.fullname}
-                  </option>
-                ))}
-              </select>
-            </div> */}
+            <div className="grid gap-x-3 gap-y-2 sm:grid-cols-12 pl-10 pr-10 pt-2">
+              <div className="sm:col-span-9 pl-6 pt-2">
+                <span className="block text-base font-medium text-gray-900 dark:text-gray-300 py-2">
+                  ชื่อใบงานเตรียมปฎิบัติการ
+                </span>
+                <input
+                  name="labjobTitle"
+                  value={formData.labjobTitle}
+                  onChange={handleChange}
+                  className="border border-gray-500 p-2 rounded-lg w-full"
+                  required
+                />
+              </div>
+              <div className="sm:col-span-3 p-2 pr-6">
+                <span className="block text-base font-medium text-gray-900 dark:text-gray-300 py-2">
+                  หัวหน้าบทปฏิบัติการ
+                </span>
+                <select
+                  name="personId"
+                  value={formData.personId}
+                  onChange={handleChange}
+                  className="border border-gray-500 p-2 rounded-lg w-full"
+                  required>
+                  <option value="">-เลือก-</option>
+                  {data?.map((item) => (
+                    <option key={item.personId} value={item.personId}>
+                      {item.fullname}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="md:col-span-2 flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                type="button"
-                onClick={() => router.push("/prepare-lab/new?labId=" + labId)}
-                className="cursor-pointer p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                ยกเลิก
-              </button>
-              <button
-                type="submit"
-                className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isNew ? "บันทึก" : "บันทึก"}
-              </button>
+              <div className="md:col-span-12 flex justify-center gap-2 p-4  dark:border-gray-700">
+                <button
+                  type="button"
+                  onClick={() => router.push("/prepare-lab/new?labId=" + labId)}
+                  className="cursor-pointer p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                  {isNew ? "บันทึก" : "บันทึก"}
+                </button>
+              </div>
             </div>
           </form>
         </div>

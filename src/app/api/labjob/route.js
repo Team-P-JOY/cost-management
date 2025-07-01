@@ -85,32 +85,50 @@ export async function GET(req) {
     // ดึงข้อมูล datacoursa
     const datacourse = await executeQuery(
       `SELECT 
-          L.LAB_ID,
-          L.COURSEID,
-          COURSE.COURSEID AS COURSE_ID,
-          REG.COURSEID AS REG_COURSE_ID,
-          COURSE.COURSEUNICODE,
-          COURSE.COURSEUNIT,
-          COURSE.COURSENAME,
-          COURSE.COURSENAMEENG,
-          REG.TOTALSEAT,
-          REG.ENROLLSEAT,
-          L.LABROOM,
-          L.SECTION AS LAB_SECTION,
-          REG.SECTION AS REG_SECTION,
-          L.HOUR,
-          G.LABGROUP_NAME,
-          COURSE.DESCRIPTION1
-      FROM CST_LABCOURSE L
-      INNER JOIN PBL_AVSREGCOURSE_V COURSE ON COURSE.COURSEID = L.COURSEID      
-      INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = L.SCH_ID
-      INNER JOIN CST_LABGROUP G ON G.LABGROUP_ID = L.LABGROUP_ID
-      INNER JOIN PBL_AVSREGCLASS_V REG 
-      ON REG.COURSEID = COURSE.COURSEID 
-      AND SCH.ACADYEAR = REG.ACADYEAR
-      AND SCH.semester = REG.semester
-      WHERE L.FLAG_DEL = 0 
-      AND L.LAB_ID = :labId
+    L.LAB_ID,
+    L.COURSEID,
+    COURSE.COURSEID AS COURSE_ID,
+    REG.COURSEID AS REG_COURSE_ID,
+    COURSE.COURSEUNICODE,
+    COURSE.COURSEUNIT,
+    COURSE.COURSENAME,
+    COURSE.COURSENAMEENG,
+     SUM(REG.TOTALSEAT) AS TOTALSEAT, 
+    SUM(REG.ENROLLSEAT) AS ENROLLSEAT, 
+    MAX(SCH.ACADYEAR) AS ACADYEAR,
+    MAX(SCH.SEMESTER) AS SEMESTER,
+    L.LABROOM,
+    L.SECTION AS LAB_SECTION,
+    L.HOUR,
+    G.LABGROUP_NAME,
+    COURSE.DESCRIPTION1
+FROM CST_LABCOURSE L
+INNER JOIN PBL_AVSREGCOURSE_V COURSE 
+    ON COURSE.COURSEID = L.COURSEID      
+INNER JOIN CST_SCHYEAR SCH 
+    ON SCH.SCH_ID = L.SCH_ID
+INNER JOIN CST_LABGROUP G 
+    ON G.LABGROUP_ID = L.LABGROUP_ID
+INNER JOIN PBL_AVSREGCLASS_V REG 
+    ON REG.COURSEID = COURSE.COURSEID 
+    AND SCH.ACADYEAR = REG.ACADYEAR
+    AND SCH.SEMESTER = REG.SEMESTER
+WHERE L.FLAG_DEL = 0 
+  AND L.LAB_ID = :labId
+GROUP BY 
+    L.LAB_ID,
+    L.COURSEID,
+    COURSE.COURSEID,
+    REG.COURSEID,
+    COURSE.COURSEUNICODE,
+    COURSE.COURSEUNIT,
+    COURSE.COURSENAME,
+    COURSE.COURSENAMEENG,
+    L.LABROOM,
+    L.SECTION,
+    L.HOUR,
+    G.LABGROUP_NAME,
+    COURSE.DESCRIPTION1
       `,
       { labId }
     );
@@ -144,7 +162,7 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { labId, personId, labjobTitle, userCreated } = body; // Use .json() for body parsing in Next.js API routes
+    const { labId, personId, labjobTitle, userCreated } = body;
     if (!labId || !personId || !labjobTitle || !userCreated) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },

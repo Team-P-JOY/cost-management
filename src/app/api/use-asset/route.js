@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { executeQuery } from "@/lib/oracle";
+
 async function getSemester() {
   return await executeQuery(
     `SELECT SCH_ID, ACADYEAR, SEMESTER 
@@ -72,6 +73,17 @@ async function getClass(courseId, schId) {
     {
       courseId,
       schId,
+    }
+  );
+}
+async function getLabjob(labjobId) {
+  return await executeQuery(
+    `SELECT LABJOB.LABJOB_TITLE
+    FROM CST_LABJOB LABJOB
+    WHERE LABJOB.LABJOB_ID = :labjobId
+    AND LABJOB.FLAG_DEL = 0`,
+    {
+      labjobId,
     }
   );
 }
@@ -167,12 +179,14 @@ export async function GET(req) {
       );
       const course = await getCourse(data[0].courseid);
       const classData = await getClass(data[0].courseid, data[0].schId);
+      const labjob = await getLabjob(labjobId);
 
       return NextResponse.json({
         success: true,
         data: data[0],
         course: course?.[0],
         class: classData,
+        labjob: labjob?.[0],
         users: users,
         labgroup: labgroup,
         labasset: labasset,
@@ -310,12 +324,14 @@ export async function GET(req) {
     } else {
       const course = await getCourse(courseId);
       const classData = await getClass(courseId, schId);
+      const labjob = await getLabjob(labjobId);
 
       return NextResponse.json({
         success: true,
         data: [],
         course: course?.[0],
         class: classData,
+        labjob: labjob?.[0],
         users: users,
         labgroup: labgroup,
       });
@@ -356,7 +372,6 @@ export async function POST(req) {
       throw new Error("One or more values are not valid numbers.");
     }
 
-    // Log the query for debugging
     console.log(
       "Executing query:",
       `INSERT INTO CST_LABJOB_ASSET 

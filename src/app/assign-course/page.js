@@ -1,15 +1,30 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 import axios from "axios";
 import { navigation } from "@/lib/params";
+import { useSession } from "next-auth/react";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiSearch,
+  FiXCircle,
+} from "react-icons/fi";
 
 export default function List() {
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState({ key: "", order: "asc" });
+  const { data: session } = useSession();
+  const labgroupName = session?.user.userInfo.labgroupName;
+  const userlogin = session?.user.userRole;
+  const userIdlogin = session?.user.person_id;
+  console.log("userlogin", userlogin, userIdlogin, labgroupName);
   const searchParams = useSearchParams();
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
@@ -86,7 +101,7 @@ export default function List() {
       ),
     },
     {
-      key: "coursecode",
+      key: "coursename",
       content: "รายวิชา",
       render: (item) => (
         <div className="flex flex-col">
@@ -116,7 +131,7 @@ export default function List() {
         <div className="flex flex-col">
           <p className="block">จำนวนกลุ่มเรียน : {item.section} กลุ่ม</p>
           <p className="block opacity-70">
-            จำนวนนักศึกษา : {item.totalseat} คน
+            จำนวนนักศึกษา : {item.enrollseat} คน | {item.totalseat} ที่นั่ง
           </p>
         </div>
       ),
@@ -148,7 +163,7 @@ export default function List() {
     },
     {
       key: "labId",
-      content: "Action",
+      content: "จัดการ",
       width: "100",
       sort: false,
       export: false,
@@ -174,6 +189,42 @@ export default function List() {
       ),
     },
   ];
+  const processedData = useMemo(() => {
+    let result = [];
+    if (userlogin === "แอดมิน") {
+      result = data.data;
+    } else if (userlogin === "หัวหน้าฝ่าย") {
+      result = data.data.filter((item) => {      
+        return (
+          item.userCreated == userIdlogin || item.labgroupName === labgroupName
+        );
+      });
+    }
+
+    if (search.trim() !== "") {
+      result = result.filter((item) => {
+        const combined = `${item.coursecode} ${item.coursename}`.toLowerCase();
+        return combined.includes(search.toLowerCase());
+      });
+    }
+
+    // ✅ sort ตาม field เดียว (แล้วแต่คุณจะระบุ)
+    if (sort.key !== "") {
+      result.sort((a, b) => {
+        const valA = a[sort.key];
+        const valB = b[sort.key];
+        if (valA === valB) return 0;
+
+        if (sort.order === "asc") {
+          return valA > valB ? 1 : -1;
+        } else {
+          return valA < valB ? 1 : -1;
+        }
+      });
+    }
+
+    return result;
+  }, [data, search, sort]);
 
   return (
     <Content
@@ -182,7 +233,7 @@ export default function List() {
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between">
           <div>
-            <h3 className="font-semibold ">กำหนดรายวิชา</h3>
+            <h3 className="font-semibold ">รายการรายวิชาที่กำหนด</h3>
           </div>
           <div className="flex gap-4">
             <div className="flex gap-2 items-center">
@@ -195,7 +246,7 @@ export default function List() {
                 }}
                 className="block bg-white px-4 py-2 border rounded-md dark:bg-gray-800">
                 <option value="" disabled>
-                  เลือกเทอมการศึกษา
+                  กรุณาเลือก
                 </option>
                 {data.semester.map((item) => (
                   <option key={item.schId} value={item.schId}>
@@ -209,7 +260,7 @@ export default function List() {
               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={_onPressAdd}>
               <FiPlus className="w-4 h-4" />
-              เพิ่มใหม่
+              เพิ่มรายวิชา
             </button>
           </div>
         </div>
@@ -218,7 +269,36 @@ export default function List() {
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <TableList meta={meta} data={data.data} loading={loading} />
+            <>
+              {/* ช่องค้นหา */}
+
+              {/* ตาราง */}
+              <TableList
+                meta={meta}
+                data={processedData}
+                loading={loading}
+                disableSearch={true}
+                customSearchSlot={
+                  <div className="relative w-full max-w-xs">
+                    <input
+                      type="text"
+                      placeholder="ค้นหา..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-40 h-7 text-sm pr-8 pl-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
+                    />
+                    {search ? (
+                      <FiXCircle
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4 cursor-pointer"
+                        onClick={() => setSearch("")}
+                      />
+                    ) : (
+                      <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4" />
+                    )}
+                  </div>
+                }
+              />
+            </>
           )}
         </div>
       </div>

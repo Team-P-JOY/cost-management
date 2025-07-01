@@ -2,13 +2,19 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiCheckCircle } from "react-icons/fi";
 import { useSession } from "next-auth/react";
 
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
-
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiSearch,
+  FiXCircle,
+} from "react-icons/fi";
 export default function Detail() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -67,12 +73,20 @@ export default function Detail() {
     fetchData();
   }, [facultyId, schId]);
 
+  
   const handleCreate = async (courseid) => {
     const term = data.term.find((item) => item.schId == schId);
     const section = filterData.find(
       (item) => item.courseid === courseid
     )?.section;
-    const response = await axios.post(`/api/assign-course`, {
+    const params = new URLSearchParams({
+      courseId: encodeURIComponent(courseid),
+      schId: encodeURIComponent(schId),
+    });
+    // router.push(`/assign-course/new`);
+    router.push(`/assign-course/new?${params.toString()}`);
+    // ถ้าคุณยังต้องการให้แค่ดูข้อมูลที่เตรียมจะส่ง สามารถ console.log ได้
+    console.log({
       courseid: courseid,
       schId: schId,
       acadyear: term.acadyear,
@@ -80,13 +94,37 @@ export default function Detail() {
       section,
       userId: session?.user.person_id,
     });
-
-    const res = response.data;
-    if (res.success) {
-      router.push(`/assign-course/${res.labId}`);
-    }
   };
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState({ key: "", order: "asc" });
+  const processedData = useMemo(() => {
+    let result = [...filterData];
 
+   
+    if (search.trim() !== "") {
+      result = result.filter((item) => {
+        const combined = `${item.coursecode} ${item.coursename}`.toLowerCase();
+        return combined.includes(search.toLowerCase());
+      });
+    }
+
+    
+    if (sort.key !== "") {
+      result.sort((a, b) => {
+        const valA = a[sort.key];
+        const valB = b[sort.key];
+        if (valA === valB) return 0;
+
+        if (sort.order === "asc") {
+          return valA > valB ? 1 : -1;
+        } else {
+          return valA < valB ? 1 : -1;
+        }
+      });
+    }
+
+    return result;
+  }, [data, search, sort]);
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
     { name: "กำหนดรายวิชา", link: "/assign-course" },
@@ -130,8 +168,7 @@ export default function Detail() {
         <div className="flex justify-center">
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => handleCreate(item.courseid)}
-          >
+            onClick={() => handleCreate(item.courseid)}>
             <FiCheckCircle className="w-4 h-4" />
             เลือก
           </button>
@@ -143,8 +180,7 @@ export default function Detail() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
-    >
+      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
@@ -162,8 +198,7 @@ export default function Detail() {
                   `/assign-course/create?facultyId=${e.target.value}&schId=${schId}`
                 );
               }}
-              className={className.select}
-            >
+              className={className.select}>
               <option value="" disabled>
                 เลือกสำนักวิชา
               </option>
@@ -185,8 +220,7 @@ export default function Detail() {
                   `/assign-course/create?facultyId=${facultyId}&schId=${e.target.value}`
                 );
               }}
-              className={className.select}
-            >
+              className={className.select}>
               <option value="" disabled>
                 เลือกเทอมการศึกษา
               </option>
@@ -207,8 +241,7 @@ export default function Detail() {
               ].map((option) => (
                 <label
                   key={option.id}
-                  className="flex items-center space-x-2 cursor-pointer"
-                >
+                  className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="radio"
                     name="options"
@@ -228,9 +261,29 @@ export default function Detail() {
           <div className="sm:col-span-12">
             <TableList
               meta={meta}
-              data={filterData}
+              data={processedData}
               loading={loading}
               exports={false}
+              disableSearch={true}
+              customSearchSlot={
+                <div className="relative w-full max-w-xs">
+                  <input
+                    type="text"
+                    placeholder="ค้นหา..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-40 h-7 text-sm pr-8 pl-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
+                  />
+                  {search ? (
+                    <FiXCircle
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4 cursor-pointer"
+                      onClick={() => setSearch("")}
+                    />
+                  ) : (
+                    <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4" />
+                  )}
+                </div>
+              }
             />
           </div>
         </div>
@@ -238,8 +291,7 @@ export default function Detail() {
           <button
             type="button"
             className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
-            onClick={() => router.back()}
-          >
+            onClick={() => router.back()}>
             ย้อนกลับ
           </button>
         </div>

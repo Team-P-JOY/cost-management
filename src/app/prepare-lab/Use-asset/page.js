@@ -28,8 +28,9 @@ export default function Detail() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const idParam = searchParams.get("id");
+  const idParam = searchParams.get("labId");
   const labjobId = searchParams.get("labjobId");
+
   const labId = parseInt(idParam, 10);
   const isNew = labId === "new";
   const [loading, setLoading] = useState(false);
@@ -61,6 +62,7 @@ export default function Detail() {
     users: [],
     labgroup: [],
   });
+  const [datalabjob, setDatalabjob] = useState([]);
 
   const [assetInfo, setAssetInfo] = useState(null);
 
@@ -73,12 +75,16 @@ export default function Detail() {
   const validationInventForm = Yup.object({
     assetId: Yup.string().required("กรุณาเลือกข้อมูล"),
     amountUsed: Yup.number()
+      .required("กรุณากรอกจำนวนที่ใช้")
+      .min(1, "จำนวนต้องไม่น้อยกว่า 1"),
+    unitPrice: Yup.number()
       .required("กรุณากรอกข้อมูล")
       .min(1, "จำนวนต้องไม่น้อยกว่า 1"),
     assetUsedRemark: Yup.string()
       .nullable()
       .max(100, "ข้อความต้องไม่เกิน 100 ตัวอักษร"),
     hourUsed: Yup.number()
+      .required("กรุณากรอกข้อมูล")
       .nullable()
       .min(0, "ชั่วโมงต้องไม่น้อยกว่า 0")
       .max(24, "ชั่วโมงต้องไม่เกิน 24"),
@@ -324,11 +330,15 @@ export default function Detail() {
     setLoading(true);
     try {
       if (!isNew) {
+        console.log("labId:", labId, "labjobId:", labjobId);
+
         const response = await axios.get(
-          `/api/use-asset?id=${labId}&labjobId=${searchParams.get("labjobId")}`
+          `/api/use-asset?id=${labId}&labjobId=${labjobId}`
         );
         const data = response.data;
         if (data.success) {
+          setDatalabjob({ labjob: data.labjob });
+          console.log("Data fetched:", data.labjob);
           setData({ course: data.course });
 
           setLabasset({
@@ -412,8 +422,9 @@ export default function Detail() {
 
   const breadcrumb = [
     // { name: "แผนการให้บริการห้องปฎิบัติการ" },
-    { name: "ใบงานปฏิบัติการตามรายวิชา", link: "/prepare-lab" },
-    { name: isNew ? "เพิ่มใหม่" : "เพิ่มข้อมูล" },
+    { name: "รายการรายวิชา", link: "/prepare-labu" },
+    { name: "ใบงานตรียมปฏิบัติการ", link: "/prepare-lab/new?labId=" + labId },
+    { name: isNew ? "เพิ่มการใช้ทรัพยากร" : "เพิ่มการใช้ทรัพยากร" },
   ];
 
   const _callInvent = async (type, labId, extraFlag) => {
@@ -604,10 +615,11 @@ export default function Detail() {
     });
     await _callInvent(type, labId, extraFlag);
   };
-  const assetOptions = invent.map((inv) => ({
+  const assetOptions = invent.map((inv, index) => ({
     label: `${inv.assetNameTh} ${inv.amountUnit} (${inv.unitName})`,
-    value: inv.assetId,
+    value: `${inv.assetId}-${index}`,
   }));
+
   return (
     <Content
       breadcrumb={breadcrumb}
@@ -616,7 +628,8 @@ export default function Detail() {
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
             {isNew ? "การใช้ทรัพยากร" : "การใช้ทรัพยากร"} :{" "}
-            {data.course?.coursename} ({data.course?.coursecode})
+            {data.course?.coursename} ({data.course?.coursecode}){" "}
+            {datalabjob.labjob?.labjobTitle || ""}
           </h3>
         </div>
 
@@ -670,7 +683,7 @@ export default function Detail() {
                                 )
                               }>
                               <FiPlus className="w-4 h-4" />
-                              พัสดุเพิ่มเติม
+                              เพิ่มรายการนอก
                             </button>
                             <button
                               type="button"
@@ -684,7 +697,7 @@ export default function Detail() {
                                 )
                               }>
                               <FiPlus className="w-4 h-4" />
-                              เพิ่ม
+                              เพิ่มรายการ
                             </button>
                           </div>
                         </div>
@@ -703,7 +716,8 @@ export default function Detail() {
                                       {""}
                                       {item.assetextraFlag === "1" ? (
                                         <span style={{ color: "red" }}>
-                                          (เพิ่มเติม)
+                                          {" "}
+                                          (รายการนอก)
                                         </span>
                                       ) : (
                                         ""
@@ -818,7 +832,7 @@ export default function Detail() {
                                 )
                               }>
                               <FiPlus className="w-4 h-4" />
-                              พัสดุเพิ่มเติม
+                              เพิ่มรายการนอก
                             </button>
                             <button
                               type="button"
@@ -832,7 +846,7 @@ export default function Detail() {
                                 )
                               }>
                               <FiPlus className="w-4 h-4" />
-                              เพิ่ม
+                              เพิ่มรายการ
                             </button>
                           </div>
                         </div>
@@ -850,7 +864,8 @@ export default function Detail() {
                                       {item.unitPrice} บาท){" "}
                                       {item.assetextraFlag === "1" ? (
                                         <span style={{ color: "red" }}>
-                                          (เพิ่มเติม)
+                                          {" "}
+                                          (รายการนอก)
                                         </span>
                                       ) : (
                                         ""
@@ -961,7 +976,7 @@ export default function Detail() {
                                 )
                               }>
                               <FiPlus className="w-4 h-4" />
-                              พัสดุเพิ่มเติม
+                              เพิ่มรายการนอก
                             </button>
                             <button
                               type="button"
@@ -975,7 +990,7 @@ export default function Detail() {
                                 )
                               }>
                               <FiPlus className="w-4 h-4" />
-                              เพิ่ม
+                              เพิ่มรายการ
                             </button>
                           </div>
                         </div>
@@ -993,7 +1008,8 @@ export default function Detail() {
                                       {item.unitPrice} บาท){" "}
                                       {item.assetextraFlag === "1" ? (
                                         <span style={{ color: "red" }}>
-                                          (เพิ่มเติม)
+                                          {" "}
+                                          (รายการนอก)
                                         </span>
                                       ) : (
                                         ""
@@ -1104,7 +1120,7 @@ export default function Detail() {
                                 )
                               }>
                               <FiPlus className="w-4 h-4" />
-                              เพิ่มอุปกรณ์ชำรุด
+                              เพิ่มรายการอุปกรณ์ชำรุด
                             </button>
                           </div>
                         </div>
@@ -1218,35 +1234,10 @@ export default function Detail() {
                     <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
                       <div className="sm:col-span-12">
                         <label className={className.label}>
-                          วัสดุที่เลือกใช้
+                          วัสดุที่เลือกใช้ใน{" "}
+                          {datalabjob.labjob?.labjobTitle || ""}
                         </label>
-                        {/* <select
-                          name="assetId"
-                          value={inventForm.values.assetId}
-                          onChange={(e) => {
-                            inventForm.setFieldValue(
-                              "assetId",
-                              Number(e.target.value)
-                            );
-                          }}
-                          className={`${className.select} ${
-                            inventForm.touched.assetId &&
-                            inventForm.errors.assetId
-                              ? "border-red-500"
-                              : ""
-                          }`}>
-                          <option value="" disabled>
-                            เลือกวัสดุที่เลือกใช้
-                          </option>
-                          {invent.map((inv, index) => (
-                            <option
-                              key={`${inv.assetId}-${index}`}
-                              value={inv.assetId}>
-                              {inv.assetNameTh} {inv.amountUnit} ({inv.unitName}
-                              )
-                            </option>
-                          ))}
-                        </select> */}
+
                         <AutocompleteSelect2
                           name="assetId"
                           options={assetOptions}
@@ -1254,7 +1245,7 @@ export default function Detail() {
                           onSelect={(name, item) => {
                             inventForm.setFieldValue(name, item.value);
                           }}
-                          error={inventForm.errors.assetId}
+                          // error={inventForm.errors.assetId}
                           touched={inventForm.touched.assetId}
                           // placeholder="พิมพ์หรือเลือกวัสดุ"
                         />
@@ -1311,6 +1302,12 @@ export default function Detail() {
                               : ""
                           }`}
                         />
+                        {inventForm.touched.amountUsed &&
+                          inventForm.errors.amountUsed && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {inventForm.errors.amountUsed}
+                            </p>
+                          )}
                       </div>
                       <div className="sm:col-span-2">
                         <label className={className.label}>
@@ -1365,8 +1362,19 @@ export default function Detail() {
                           }}
                           min={0}
                           step="0.01"
-                          className={className.input}
+                          className={`${className.input} ${
+                            inventForm.touched.unitPrice &&
+                            inventForm.errors.unitPrice
+                              ? "border-red-500"
+                              : ""
+                          }`}
                         />
+                        {inventForm.touched.unitPrice &&
+                          inventForm.errors.unitPrice && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {inventForm.errors.unitPrice}
+                            </p>
+                          )}
                       </div>
                       <div className="sm:col-span-3">
                         <label className={className.label}>หน่วย</label>
@@ -1382,7 +1390,7 @@ export default function Detail() {
                         />
                       </div>
                       <div className="sm:col-span-12">
-                        <label className={className.label}>Remark</label>
+                        <label className={className.label}>หมายเหตุ</label>
                         <input
                           type="text"
                           name="assetUsedRemark"
@@ -1448,7 +1456,9 @@ export default function Detail() {
                   <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
                       <div className="sm:col-span-12">
-                        <label className={className.label}>อุปกรณ์ชำรุด</label>
+                        <label className={className.label}>
+                          อุปกรณ์ชำรุด {datalabjob.labjob?.labjobTitle || ""}
+                        </label>
                         <select
                           name="assetId"
                           value={brokenForm.values.assetId}
@@ -1545,7 +1555,7 @@ export default function Detail() {
                         />
                       </div>
                       <div className="sm:col-span-12">
-                        <label className={className.label}>Remark</label>
+                        <label className={className.label}>หมายเหตุ</label>
                         <input
                           type="text"
                           name="assetUsedRemark"

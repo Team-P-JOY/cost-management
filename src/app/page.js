@@ -10,15 +10,34 @@ import Content from "@/components/Content";
 import ExportButton from "@/components/ExportButton";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-// import { useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import TableList from "@/components/TableList";
+import { useRouter } from "next/navigation";
+
 export default function Dashboard() {
+  const { data: session } = useSession();
+  console.log("session", session);
+  const userlogin = session?.user.userRole;
+  const userIdlogin = session?.user.person_id;
+  const labgroupName = session?.user.userInfo.labgroupName;
+  console.log("userIdlogin22", labgroupName);
   const [academicYears, setAcademicYears] = useState([]);
   const [labGroups, setLabGroups] = useState([]);
   const [selectedSchId, setSelectedSchId] = useState("");
   const [selectedLg, setSelectedLg] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter(); // Get the router object
+
+  const redirectToPrepareLab = async () => {
+    router.push("/prepare-labu");
+  };
+
+  useEffect(() => {
+    if (userlogin === "หัวหน้าบทปฏิบัติการ") {
+      redirectToPrepareLab();
+    }
+  }, [userlogin]);
 
   useEffect(() => {
     async function fetchAcademicYears() {
@@ -82,8 +101,23 @@ export default function Dashboard() {
       );
       const result = await response.json();
       console.log("ผลลัพธ์:", result.data);
-      if (result.data) {
+      console.log("userIdlogin:", userIdlogin);
+      const filteredData = result.data.filter(
+        (item) => item.personId == userIdlogin
+      );
+      const labgroupFilteredData = result.data.filter(
+        (item) => item.labgroupName === labgroupName
+      );
+      if (userlogin === "แอดมิน") {
         setSearchResults(result.data);
+      } else if (
+        userlogin === "หัวหน้าฝ่าย" &&
+        labgroupFilteredData &&
+        labgroupFilteredData.length > 0
+      ) {
+        setSearchResults(labgroupFilteredData);
+      } else if (filteredData && filteredData.length > 0) {
+        setSearchResults(filteredData);
       }
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
@@ -92,20 +126,14 @@ export default function Dashboard() {
     }
   };
 
-  // const schId = "1"; // Replace with actual schId if needed
   return (
     <Content>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-semibold text-white dark:text-gray-300">
-          {/* Dashboard */}
-          <Link href="/dashboard">คลิก</Link>
-        </h1>
-
+        <h1 className="text-3xl font-semibold text-white dark:text-gray-300"></h1>
         <div className="flex items-center justify-end space-x-4">
           <label className="text-gray-900 dark:text-gray-300 text-xl">
             ภาคการศึกษา
           </label>
-
           <select
             className="p-4 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-lg focus:outline-none w-28  text-gray-800 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600"
             value={selectedSchId}
@@ -188,7 +216,7 @@ export default function Dashboard() {
       </div>
 
       <div className="collapse bg-gray-100 dark:bg-gray-800 mt-2">
-        <input type="radio" name="my-accordion-1" defaultChecked />
+        <input type="radio" name="my-accordion-1" />
         <div className="collapse-title text-xl font-medium text-gray-800 dark:text-gray-300 flex items-center space-x-2">
           <FiChevronsDown className="text-purple-500" />{" "}
           <p>ฝ่ายห้องปฏิบติการ</p>
@@ -261,7 +289,7 @@ export default function Dashboard() {
         </div>
       </div>
       <div className="collapse bg-gray-100 dark:bg-gray-800 mt-2">
-        <input type="radio" name="my-accordion-1" />
+        <input type="radio" name="my-accordion-1" defaultChecked />
         <div className="collapse-title text-xl font-medium text-gray-800 dark:text-gray-300 flex items-center space-x-2">
           <FiChevronsDown className="text-purple-500" /> <p>รายงาน</p>
         </div>

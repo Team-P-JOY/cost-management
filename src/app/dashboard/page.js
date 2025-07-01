@@ -33,6 +33,7 @@ export default function Dashboard({ searchParams }) {
   const [dataFaculty, setFaculty] = useState(null);
   const [dataReg, setReg] = useState(null);
   const [dataLabjob, setLabjob] = useState([]);
+  const [facproReport, setFacproReport] = useState([]);
   const [dataEquipment, setEquipment] = useState(null);
   const [dataSupplies, setSupplies] = useState(null);
   const [dataDurableitems, setDurableitems] = useState(null);
@@ -75,6 +76,7 @@ export default function Dashboard({ searchParams }) {
         setEquipment(json.equipment);
         setSupplies(json.supplies);
         setDurableitems(json.durableitems);
+        setFacproReport(json.facproReport);
         console.log("json", json);
       } else {
         console.error("Failed to fetch data");
@@ -151,20 +153,26 @@ export default function Dashboard({ searchParams }) {
                             <FileText className="h-5 w-5 text-red-500" />
                           </div>
                           <span className="text-red-500 font-medium">
-                            ต้นทุนรวม
+                            ต้นทุนรวม1
                           </span>
                         </div>
                         <h2 className="text-black text-2xl font-bold">
-                          {dataEquipment
-                            ?.reduce(
-                              (sum, item) => sum + (item.itemTotal || 0),
-                              0
-                            )
-                            .toLocaleString(undefined, {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}{" "}
-                          บาท
+                          <span>
+                            {facproReport
+                              ?.reduce((sum, item) => {
+                                return (
+                                  sum +
+                                  (item.costPerprogram1 || 0) +
+                                  (item.costPerprogram2 || 0) +
+                                  (item.costPerprogram3 || 0)
+                                );
+                              }, 0)
+                              .toLocaleString("th-TH", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}{" "}
+                            บาท
+                          </span>
                         </h2>
 
                         <p className="text-sm text-gray-500">
@@ -227,7 +235,22 @@ export default function Dashboard({ searchParams }) {
                           </span>
                         </div>
                         <h2 className="text-black text-2xl font-bold">
-                          10,905.176 บาท
+                          <span>
+                            {facproReport
+                              ?.reduce((sum, item) => {
+                                return (
+                                  ((item.costPerprogram1 || 0) +
+                                    (item.costPerprogram2 || 0) +
+                                    (item.costPerprogram3 || 0)) /
+                                  item.countstd
+                                );
+                              }, 0)
+                              .toLocaleString("th-TH", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}{" "}
+                            บาท
+                          </span>
                         </h2>
                         <p className="text-sm text-gray-500">
                           ต้นทุนต่อหัวต่อนักศึกษา
@@ -254,8 +277,7 @@ export default function Dashboard({ searchParams }) {
                             {" "}
                             {dataCourse && dataCourse.length > 0
                               ? dataCourse[0].coursecode
-                              : "กำลังโหลด..."}
-                            -{" "}
+                              : "กำลังโหลด..."}{" "}
                           </div>
 
                           <div className="text-gray-500 text-base">
@@ -265,6 +287,10 @@ export default function Dashboard({ searchParams }) {
                             {" "}
                             {dataCourse && dataCourse.length > 0
                               ? dataCourse[0].coursename
+                              : "กำลังโหลด..."}{" "}
+                            <br />
+                            {dataCourse && dataCourse.length > 0
+                              ? dataCourse[0].coursenameeng
                               : "กำลังโหลด..."}{" "}
                           </div>
 
@@ -393,83 +419,128 @@ export default function Dashboard({ searchParams }) {
                     {/* Top Lab Costs */}
                     <div className="card mt-6 p-6 burder shadow border-black-900 rounded-lg">
                       <h2 className="text-black text-2xl font-bold mb-1">
-                        ต้นทุนงบปฏิบัติการสูงสุด
+                        สรุปจำนวนรายวิชาปฏิบัติการ
                       </h2>
-                      <p className="text-sm text-gray-500 mb-4">
-                        ข้อมูลต้นทุนของบทปฏิบัติ
-                      </p>
+                      <p className="text-sm text-gray-500 mb-4">ข้อมูลต้นทุน</p>
 
                       <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b">
-                              <th className="text-left py-3 font-medium text-gray-500">
-                                บทปฏิบัติการ
-                              </th>
-                              <th className="text-left py-3 font-medium text-gray-500">
-                                หัวหน้าบทปฏิบัติการ
-                              </th>
-                              <th className="text-right py-3 font-medium text-gray-500">
-                                ต้นทุนรวม (บาท)
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {Array.isArray(dataLabjob) &&
-                            dataLabjob.length > 0 ? (
-                              dataLabjob.map((job, index) => (
-                                <tr key={index} className="border-b">
-                                  <td className="text-black py-3">
-                                    {job.labjobTitle}
-                                  </td>
-                                  <td className="py-3 text-black">
-                                    {job.fullname}
-                                  </td>
-                                  <td className="py-3 text-right text-black">
-                                    {(() => {
-                                      const total = job.asset.reduce(
-                                        (sum, item) => {
-                                          const amount = parseFloat(
-                                            item.amountUsed || 0
-                                          );
-                                          const price = parseFloat(
-                                            item.unitPrice || 0
-                                          );
-                                          return sum + amount * price;
-                                        },
-                                        0
-                                      );
+                        <TableList
+                          meta={[
+                            {
+                              key: "facultyname",
+                              content: "สำนักวิชา",
+                              render: (item) => (
+                                <div className="flex flex-col">
+                                  <p className="block">{item.facultyname}</p>
+                                  <p className="block opacity-60 text-sm">
+                                    {item.labjobDesc}
+                                  </p>
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "programname",
+                              content: "หลักสูตร",
+                            },
 
-                                      return (
-                                        <>
-                                          {/* {job.asset.map((item, i) => (
-                                        <div key={i}>
-                                          {item.assetNameTh} ({item.amountUsed} ชิ้น)
-                                        </div>
-                                      ))} */}
-                                          <div className="mt-2 font-medium text-black-600">
-                                            {total.toLocaleString(undefined, {
-                                              minimumFractionDigits: 2,
-                                              maximumFractionDigits: 2,
-                                            })}
-                                          </div>
-                                        </>
-                                      );
-                                    })()}
-                                  </td>
-                                </tr>
-                              ))
-                            ) : (
-                              <tr>
-                                <td
-                                  colSpan={3}
-                                  className="py-3 text-center text-gray-400">
-                                  ไม่พบข้อมูลการทดลอง
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
+                            {
+                              key: "countstd",
+                              className: "text-right",
+                              content: "จำนวนนักศึกษา",
+                              render: (row) =>
+                                row.totalEnroll != null
+                                  ? Number(row.countstd).toLocaleString(
+                                      "en-US",
+                                      {
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0,
+                                      }
+                                    )
+                                  : "-",
+                            },
+                            {
+                              key: "costPerprogram3",
+                              className: "text-right",
+                              content: "วัสดุสิ้นเปลือง(ราคา/ภาค)",
+                              render: (row) =>
+                                row.costPerprogram3 != null
+                                  ? Number(row.costPerprogram3).toLocaleString(
+                                      "en-US",
+                                      {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                      }
+                                    )
+                                  : "-",
+                            },
+                            {
+                              key: "costPerprogram2",
+                              className: "text-right",
+                              content: "วัสดุไม่สิ้นเปลือง(ราคา/ภาค)",
+                              render: (row) =>
+                                row.costPerprogram2 != null
+                                  ? Number(row.costPerprogram2).toLocaleString(
+                                      "en-US",
+                                      {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                      }
+                                    )
+                                  : "-",
+                            },
+                            {
+                              key: "costPerprogram1",
+                              className: "text-right",
+                              content: "ครุภัณฑ์",
+                              render: (row) =>
+                                row.costPerprogram1 != null
+                                  ? Number(row.costPerprogram1).toLocaleString(
+                                      "en-US",
+                                      {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                      }
+                                    )
+                                  : "-",
+                            },
+
+                            {
+                              key: "costPerprogram1",
+                              className: "text-right",
+                              content: "รายจ่ายรวม (บาท)",
+                              render: (row) => {
+                                const total =
+                                  (row.costPerprogram1 || 0) +
+                                  (row.costPerprogram2 || 0) +
+                                  (row.costPerprogram3 || 0);
+
+                                return total.toLocaleString("en-US", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                });
+                              },
+                            },
+                            {
+                              key: "priceperTermInvtype1",
+                              className: "text-right",
+                              content: "ค่าใช้ต่อคน (บาท)",
+                              render: (row) => {
+                                const total =
+                                  ((row.costPerprogram1 || 0) +
+                                    (row.costPerprogram2 || 0) +
+                                    (row.costPerprogram3 || 0)) /
+                                  (row.countstd || 1);
+
+                                return total.toLocaleString("en-US", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                });
+                              },
+                            },
+                          ]}
+                          data={facproReport}
+                          loading={loading}
+                        />
                       </div>
                     </div>
                   </main>

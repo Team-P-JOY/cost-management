@@ -22,7 +22,7 @@ export async function GET(req) {
     sql = `INNER JOIN CST_LABJOB LB ON L.LAB_ID = LB.LAB_ID`;
     sql2 = `AND LB.PERSON_ID = ${userIdlogin}`;
     personId1 = `,LB.PERSON_ID`;
-  } else if (userlogin === "แอดมิน") {
+  } else if (userlogin === "แอดมิน" || userlogin === "หัวหน้าฝ่าย") {
     personId1 = `,L.PERSON_ID`;
     sql = ``;
     sql2 = ``;
@@ -36,6 +36,7 @@ export async function GET(req) {
       `SELECT 
     L.LAB_ID,
     L.COURSEID,
+    MAX(LABGROUP.LABGROUP_NAME) AS LABGROUP_NAME,
     COURSE.COURSEID,
     COURSE.COURSEUNICODE,
     COURSE.COURSEUNIT,
@@ -43,6 +44,7 @@ export async function GET(req) {
     COURSE.COURSENAMEENG,
     SUM(REG.TOTALSEAT) AS TOTALSEAT,
     SUM(REG.ENROLLSEAT) AS ENROLLSEAT,
+    MAX(L.USER_CREATED) AS USER_CREATED,    
     L.LABROOM,
     L.SECTION,
     L.HOUR 
@@ -50,6 +52,8 @@ export async function GET(req) {
 FROM CST_LABCOURSE L
 INNER JOIN PBL_AVSREGCOURSE_V COURSE ON COURSE.COURSEID = L.COURSEID
 INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = L.SCH_ID
+ LEFT JOIN CST_LABGROUP LABGROUP
+            ON L.LABGROUP_ID = LABGROUP.LABGROUP_ID
 INNER JOIN PBL_AVSREGCLASS_V REG 
     ON REG.COURSEID = COURSE.COURSEID 
     AND SCH.ACADYEAR = REG.ACADYEAR
