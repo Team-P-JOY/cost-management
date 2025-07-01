@@ -89,7 +89,7 @@ export default function LoginPage() {
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-0">
           ระบบบริหารจัดการต้นทุน
         </h2>
-        <p className="text-gray-500 dark:text-gray-300 mb-6 ">
+        <p className="text-gray-500 dark:text-gray-300 mb-6">
           สำหรับศูนย์เครื่องมือวิทยาศาสตร์และเทคโนโลยี
         </p>
 
