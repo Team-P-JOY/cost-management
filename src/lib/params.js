@@ -143,9 +143,9 @@ const navigation = [
       },
       {
         id: 52,
-        name: "รายงานสรุปหัวข้อใบงานเตรียมปฏิบัติการตามรายวิชา",
+        name: "รายงานต้นทุนตามสำนักวิชา",
         icon: FiChevronsRight,
-        href: "/report/prepare-lab",
+        href: "/report/faculty",
       },
     ],
   },

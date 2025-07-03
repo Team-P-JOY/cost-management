@@ -5,6 +5,7 @@ import {
   FiUsers,
   FiChevronsDown,
   FiHome,
+  FiInfo,
 } from "react-icons/fi";
 import Content from "@/components/Content";
 import ExportButton from "@/components/ExportButton";
@@ -16,11 +17,9 @@ import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   const { data: session } = useSession();
-  console.log("session", session);
   const userlogin = session?.user.userRole;
   const userIdlogin = session?.user.person_id;
   const labgroupName = session?.user.userInfo.labgroupName;
-  console.log("userIdlogin22", labgroupName);
   const [academicYears, setAcademicYears] = useState([]);
   const [labGroups, setLabGroups] = useState([]);
   const [selectedSchId, setSelectedSchId] = useState("");
@@ -100,8 +99,7 @@ export default function Dashboard() {
         `/api/assign-course?schId=${selectedSchId}&labgroupId=${selectedLg}`
       );
       const result = await response.json();
-      console.log("ผลลัพธ์:", result.data);
-      console.log("userIdlogin:", userIdlogin);
+     
       const filteredData = result.data.filter(
         (item) => item.personId == userIdlogin
       );
@@ -125,7 +123,10 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
-
+  const handleClick = (item) => {
+    const encodedLabId = btoa(item.labId.toString());
+    router.push(`/dashboard?labId=${encodedLabId}`);
+  };
   return (
     <Content>
       <div className="flex items-center justify-between mb-6">
@@ -360,15 +361,14 @@ export default function Dashboard() {
 
                 {
                   key: "labId",
-                  content: "รายละเอียด",
+                  content: "จัดการ",
                   render: (item) => (
-                    <div className="flex flex-col">
-                      <Link
-                        href={`/dashboard?labId=${btoa(item.labId.toString())}`}
-                        className="text-blue-500 hover:underline">
-                        ดูรายละเอียด
-                      </Link>
-                    </div>
+                    <button
+                      onClick={() => handleClick(item)}
+                      className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <FiInfo className="w-4 h-4" />
+                      รายละเอียด
+                    </button>
                   ),
                 },
               ]}

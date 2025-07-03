@@ -6,8 +6,13 @@ import { FiInfo } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 import axios from "axios";
+import { useSession } from "next-auth/react";
 
 export default function List() {
+  const { data: session } = useSession();
+  const userlogin = session?.user.userRole;
+  const userIdlogin = session?.user.person_id;
+  const labgroupName = session?.user.userInfo.labgroupName;
   const searchParams = useSearchParams();
   const breadcrumb = [
     { name: "รายงาน" },
@@ -22,6 +27,7 @@ export default function List() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [schId, setSchId] = useState(searchParams.get("schId") || "");
+  const [dataReport, reportData] = useState([]);
   const [labgroupId, setLabgroupId] = useState(
     searchParams.get("labgroupId") || ""
   );
@@ -43,12 +49,42 @@ export default function List() {
             schselect = schyear.data;
           }
         }
+        if (schselect === "0") {
+          schselect = "0";
+        }
+        console.log("Using schId:", schselect);
 
         const response = await axios.get(`/api/assign-course`, {
           params: { schId: schselect, labgroupId },
         });
         const data = response.data;
+        console.log("Data fetched:", data.data);
         if (data.success) {
+          const filteredData = data.data.filter(
+            (item) => item.personId == userIdlogin
+          );
+          const labgroupFilteredData = data.data.filter(
+            (item) => item.labgroupName === labgroupName
+          );
+          console.log(
+            "Filtered labgroup data:",
+            labgroupFilteredData,
+            labgroupName
+          );
+          if (userlogin === "แอดมิน") {
+            reportData(data.data);
+            console.log("Admin user, showing all data");
+          } else if (
+            userlogin === "หัวหน้าฝ่าย" &&
+            labgroupFilteredData &&
+            labgroupFilteredData.length > 0
+          ) {
+            reportData(labgroupFilteredData);
+            console.log("Lab group user, showing filtered data");
+          } else if (filteredData && filteredData.length > 0) {
+            reportData(filteredData);
+            console.log("User data found, showing filtered data2");
+          }
           setData({
             data: data.data,
             semester: data.semester,
@@ -138,8 +174,7 @@ export default function List() {
             className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressDetail(item.labId);
-            }}
-          >
+            }}>
             <FiInfo className="w-4 h-4" />
             รายละเอียด
           </button>
@@ -151,8 +186,7 @@ export default function List() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title="รายงานแผนการให้บริการห้องปฎิบัติการ"
-    >
+      title="รายงานแผนการให้บริการห้องปฎิบัติการ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between">
           <div>
@@ -171,8 +205,7 @@ export default function List() {
                     `/report/assign-course?schId=${schId}&labgroupId=${e.target.value}`
                   );
                 }}
-                className="block px-4 py-2 border rounded-md dark:bg-gray-800"
-              >
+                className="block px-4 py-2 border rounded-md dark:bg-gray-800">
                 <option value="">แสดงทุกห้องปฎิบัติการ</option>
                 {data.labgroup.map((item) => (
                   <option key={item.labgroupId} value={item.labgroupId}>
@@ -182,7 +215,7 @@ export default function List() {
               </select>
             </div>
             <div className="flex gap-2 items-center">
-              <label className={className.label}>เทอมการศึกษา :</label>
+              <label className={className.label}>ภาคการศึกษา :</label>
               <select
                 value={schId}
                 onChange={(e) => {
@@ -191,12 +224,11 @@ export default function List() {
                     `/report/assign-course?schId=${e.target.value}&labgroupId=${labgroupId}`
                   );
                 }}
-                className="block px-4 py-2 border rounded-md dark:bg-gray-800"
-              >
-                <option value="">แสดงทุกเทอมการศึกษา</option>
+                className="block px-4 py-2 border rounded-md dark:bg-gray-800">
+                {/* <option value="">แสดงทุกภาคการศึกษา</option> */}
                 {data.semester.map((item) => (
                   <option key={item.schId} value={item.schId}>
-                    เทอม {item.semester}/{item.acadyear}
+                    {item.semester}/{item.acadyear}
                   </option>
                 ))}
               </select>
@@ -208,7 +240,7 @@ export default function List() {
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <TableList meta={meta} data={data.data} loading={loading} />
+            <TableList meta={meta} data={dataReport} loading={loading} />
           )}
         </div>
       </div>
