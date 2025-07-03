@@ -8,7 +8,7 @@ export const authOptions = {
       name: "Credentials",
       credentials: {
         username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" },
+        // password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         try {
@@ -16,7 +16,7 @@ export const authOptions = {
             method: "POST",
             body: JSON.stringify({
               username: credentials.username,
-              password: credentials.password,
+              // password: credentials.password,
             }),
             headers: {
               "Content-Type": "application/json",
@@ -24,7 +24,7 @@ export const authOptions = {
           });
           const userAuth = await response.json();
           if (userAuth.status !== "success") {
-            console.log("🛑 Auth failed response:", userAuth);
+            console.log(" Auth failed response:", userAuth);
             return null;
           }
 
