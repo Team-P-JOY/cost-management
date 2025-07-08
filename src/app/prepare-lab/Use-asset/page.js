@@ -617,7 +617,7 @@ export default function Detail() {
   };
   const assetOptions = invent.map((inv, index) => ({
     label: `${inv.assetNameTh} ${inv.amountUnit} (${inv.unitName})`,
-    value: `${inv.assetId}-${index}`,
+    value: `${inv.assetId}`,
   }));
 
   return (

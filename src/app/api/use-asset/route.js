@@ -377,25 +377,76 @@ export async function POST(req) {
       `INSERT INTO CST_LABJOB_ASSET 
     (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED,HOUR_USED, ASSET_USED_REMARK, DATE_CREATED, USER_CREATED, ASSETEXTRA_FLAG, ASSET_NAME_TH, BRAND_NAME, AMOUNT_UNIT, UNIT_NAME, UNIT_PRICE) 
     VALUES 
-    (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :hourUsed,:assetUsedRemark, SYSDATE, :userId, :assetextraFlag, :assetNameTh, :brandName, :amountUnit, :unitName,unitPrice)`
+    (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :hourUsed,:assetUsedRemark, SYSDATE, :userId, :assetextraFlag, :assetNameTh, :brandName, :amountUnit, :unitName, :unitPrice)`
     );
 
     // Execute the query
+    // แปลงค่าให้เป็นรูปแบบที่ถูกต้องก่อนส่งไปยัง database
+    const amountUsedNumber = Number(amountUsed);
+    const hourUsedNumber =
+      hourUsed !== null && hourUsed !== undefined ? Number(hourUsed) : 0;
+
+    // ตรวจสอบความถูกต้องของ unitPrice - ต้องเป็น string สำหรับ VARCHAR2
+    let unitPriceStr;
+    if (unitPrice !== null && unitPrice !== undefined) {
+      // แปลงให้เป็นตัวเลขก่อนเพื่อตรวจสอบความถูกต้อง
+      const unitPriceNum = Number(unitPrice);
+      if (isNaN(unitPriceNum)) {
+        console.error("Invalid unit price:", unitPrice);
+        throw new Error("Unit price is not a valid number.");
+      }
+      // แปลงกลับเป็น string (VARCHAR2 ในฐานข้อมูล)
+      unitPriceStr = String(unitPrice).trim();
+    } else {
+      unitPriceStr = "0";
+    }
+
+    // ตรวจสอบว่าค่าที่แปลงเป็นตัวเลขถูกต้องหรือไม่
+    if (isNaN(amountUsedNumber) || isNaN(hourUsedNumber)) {
+      console.error("Invalid numeric values:", {
+        amountUsed,
+        hourUsed,
+      });
+      throw new Error("One or more numeric values are invalid.");
+    }
+
+    console.log("Parameters:", {
+      labjobId: labjobIdNumber,
+      assetId: assetId,
+      amountUsed: amountUsedNumber,
+      hourUsed: hourUsedNumber,
+      unitPrice: unitPriceStr,
+    });
+
+    console.log("Final parameters before executing query:", {
+      labjobId: labjobIdNumber,
+      assetId: assetId || null,
+      amountUsed: amountUsedNumber,
+      hourUsed: hourUsedNumber,
+      assetUsedRemark: assetUsedRemark || "",
+      flagDel: 0,
+      userId: userIdNumber,
+      assetextraFlag: assetextraFlag || 0,
+      unitPrice: unitPriceStr,
+    });
+
+    // Query แบบเดิมมีฟิลด์บางตัวที่อาจไม่จำเป็น หรือทำให้เกิดปัญหา
+    // ลองใช้ query ที่เฉพาะเจาะจงมากขึ้น
     await executeQuery(
       `INSERT INTO CST_LABJOB_ASSET 
-  (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED,HOUR_USED, ASSET_USED_REMARK, FLAG_DEL, USER_CREATED, DATE_CREATED, ASSETEXTRA_FLAG, UNIT_PRICE)
+  (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, HOUR_USED, ASSET_USED_REMARK, FLAG_DEL, USER_CREATED, DATE_CREATED, ASSETEXTRA_FLAG, UNIT_PRICE)
   VALUES 
-  (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :hourUsed,:assetUsedRemark, :flagDel, :userId, SYSDATE, :assetextraFlag, :unitPrice)`,
+  (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :hourUsed, :assetUsedRemark, :flagDel, :userId, SYSDATE, :assetextraFlag, :unitPrice)`,
       {
-        labjobId: labjobIdNumber,
-        assetId,
-        amountUsed,
-        hourUsed: hourUsed || 0,
+        labjobId: labjobIdNumber.toString(), // แปลงเป็น string เพื่อความคงที่ในการ bind
+        assetId: assetId ? String(assetId) : null, // ถ้ามีค่า แปลงเป็น string ถ้าไม่มีส่ง null
+        amountUsed: amountUsedNumber.toString(), // แปลงเป็น string เพื่อหลีกเลี่ยงปัญหา type mismatch
+        hourUsed: hourUsedNumber.toString(), // แปลงเป็น string
         assetUsedRemark: assetUsedRemark || "",
-        flagDel: 0,
-        userId: userIdNumber,
-        assetextraFlag: assetextraFlag || 0,
-        unitPrice: unitPrice || 0,
+        flagDel: "0", // แปลงเป็น string
+        userId: userIdNumber.toString(), // แปลงเป็น string
+        assetextraFlag: assetextraFlag ? "1" : "0", // แปลงเป็น string "0" หรือ "1"
+        unitPrice: unitPriceStr, // ส่งเป็น string
       }
     );
 
@@ -422,6 +473,7 @@ export async function PUT(req) {
       labjobId,
       assetId,
       amountUsed,
+      hourUsed,
       assetUsedRemark,
       userId,
       assetextraFlag,
@@ -432,24 +484,60 @@ export async function PUT(req) {
     const labjobIdNumber = parseInt(labjobId, 10);
     const userIdNumber = parseInt(userId, 10);
     const amountUsedNumber = Number(amountUsed);
-    const unitPriceNumber = Number(unitPrice);
+
+    // ตรวจสอบความถูกต้องของ unitPrice - ต้องเป็น string สำหรับ VARCHAR2
+    let unitPriceStr;
+    if (unitPrice !== null && unitPrice !== undefined) {
+      // แปลงให้เป็นตัวเลขก่อนเพื่อตรวจสอบความถูกต้อง
+      const unitPriceNum = Number(unitPrice);
+      if (isNaN(unitPriceNum)) {
+        console.error("Invalid unit price:", unitPrice);
+        throw new Error("Unit price is not a valid number.");
+      }
+      // แปลงกลับเป็น string (VARCHAR2 ในฐานข้อมูล)
+      unitPriceStr = String(unitPrice).trim();
+    } else {
+      unitPriceStr = "0";
+    }
 
     if (
       isNaN(labjobAssetIdNumber) ||
       isNaN(labjobIdNumber) ||
       isNaN(userIdNumber) ||
-      isNaN(amountUsedNumber) ||
-      isNaN(unitPriceNumber)
+      isNaN(amountUsedNumber)
     ) {
       console.log("Validation failed:", {
         labjobAssetIdNumber,
         labjobIdNumber,
         userIdNumber,
         amountUsedNumber,
-        unitPriceNumber,
       }); // Log invalid data to debug
       throw new Error("One or more values are not valid numbers.");
     }
+
+    console.log("PUT Parameters:", {
+      labjobId: labjobIdNumber,
+      assetId: assetId,
+      amountUsed: amountUsedNumber,
+      unitPrice: unitPriceStr,
+    });
+
+    // แปลงค่า hourUsed เป็น string หรือ 0 ถ้าไม่มีค่า
+    const hourUsedStr =
+      hourUsed !== null && hourUsed !== undefined ? String(hourUsed) : "0";
+
+    console.log("Final PUT parameters before executing query:", {
+      labjobId: labjobIdNumber.toString(),
+      assetId: assetId ? String(assetId) : null, // แปลงเป็น string หรือ null
+      amountUsed: amountUsedNumber.toString(),
+      hourUsed: hourUsedStr,
+      assetUsedRemark: assetUsedRemark || "",
+      flagDel: "0",
+      userId: userIdNumber.toString(),
+      assetextraFlag: (assetextraFlag || 0).toString(),
+      labjobAssetId: labjobAssetIdNumber.toString(),
+      unitPrice: unitPriceStr,
+    });
 
     await executeQuery(
       `UPDATE CST_LABJOB_ASSET SET 
@@ -465,15 +553,16 @@ export async function PUT(req) {
         , UNIT_PRICE = :unitPrice
       WHERE LABJOB_ASSET_ID = :labjobAssetId`,
       {
-        labjobId: labjobIdNumber,
-        assetId,
-        amountUsed: amountUsedNumber,
+        labjobId: labjobIdNumber.toString(), // แปลงเป็น string
+        assetId: assetId ? String(assetId) : null, // แปลงเป็น string หรือ null
+        amountUsed: amountUsedNumber.toString(), // แปลงเป็น string
+        hourUsed: hourUsedStr, // ใช้ string
         assetUsedRemark: assetUsedRemark || "",
-        flagDel: 0,
-        userId: userIdNumber,
-        assetextraFlag: assetextraFlag || 0,
-        labjobAssetId: labjobAssetIdNumber,
-        unitPrice: unitPriceNumber || 0,
+        flagDel: "0", // แปลงเป็น string
+        userId: userIdNumber.toString(), // แปลงเป็น string
+        assetextraFlag: (assetextraFlag || 0).toString(), // แปลงเป็น string
+        labjobAssetId: labjobAssetIdNumber.toString(), // แปลงเป็น string
+        unitPrice: unitPriceStr, // ส่งเป็น string
       }
     );
 
@@ -511,8 +600,8 @@ export async function DELETE(req) {
     }
 
     await executeQuery(
-      `UPDATE CST_LABJOB_ASSET SET FLAG_DEL = 1 ,USER_UPDATED = :userId  WHERE LABJOB_ASSET_ID = :id `,
-      { id: Number(id), userId }
+      `UPDATE CST_LABJOB_ASSET SET FLAG_DEL = '1', USER_UPDATED = :userId WHERE LABJOB_ASSET_ID = :id`,
+      { id: String(id), userId: userId ? String(userId) : null }
     );
 
     return NextResponse.json({

@@ -64,7 +64,10 @@ export default function Page() {
           let labData = [];
           if (userlogin === "แอดมิน") {
             labData = response.data.data;
-          } else if (userlogin === "หัวหน้าฝ่าย") {
+          } else if (
+            userlogin === "หัวหน้าฝ่าย" ||
+            userlogin === "ผู้ประสานงานรายวิชา"
+          ) {
             labData = response.data.data.filter((item) => {
               return (
                 item.userCreated == userIdlogin ||

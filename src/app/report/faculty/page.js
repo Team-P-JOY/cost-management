@@ -226,11 +226,11 @@ export default function List() {
   ];
 
   return (
-    <Content breadcrumb={breadcrumb} title="รายงานข้อมูลสำนักวิชา">
+    <Content breadcrumb={breadcrumb} title="รายงานต้นทุนตามสำนักวิชา">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 flex justify-between">
           <div>
-            <h3 className="font-semibold">รายงานข้อมูลสำนักวิชา</h3>
+            <h3 className="font-semibold">รายงานต้นทุนตามสำนักวิชา</h3>
           </div>
           <div className="flex gap-4">
             <div className="flex gap-2 items-center">
@@ -302,15 +302,34 @@ export default function List() {
                 <h3 className="font-semibold text-lg">
                   ข้อมูลรายวิชาและต้นทุน
                 </h3>
-                <p className="text-sm text-gray-500">
-                  {selectedFaculty
-                    ? `ตารางแสดงรายวิชาของสำนักวิชา: ${
-                        filteredData.length > 0
-                          ? filteredData[0].facultyname
-                          : ""
-                      }`
-                    : "ตารางแสดงรายวิชาทั้งหมด"}
-                </p>
+
+                {!loading && (
+                  <p
+                    className="text-sm text-gray-500 mt-1"
+                    style={{ display: "block" }}>
+                    {selectedFaculty
+                      ? (() => {
+                          const faculty = dataFaculty.find(
+                            (f) =>
+                              String(f.facultyid || f.id) ===
+                              String(selectedFaculty)
+                          );
+
+                          if (faculty) {
+                            return `ตารางแสดงรายวิชาของสำนักวิชา: ${faculty.facultyname}`;
+                          } else if (
+                            filteredData.length > 0 &&
+                            filteredData[0].facultyname
+                          ) {
+                            return `ตารางแสดงรายวิชาของสำนักวิชา: ${filteredData[0].facultyname}`;
+                          } else {
+                            // ทางเลือกอื่นๆ ถ้ามี faculty ID แต่ไม่พบข้อมูล
+                            return `ตารางแสดงรายวิชาของสำนักวิชา ID: ${selectedFaculty}`;
+                          }
+                        })()
+                      : "ตารางแสดงรายวิชาทั้งหมด"}
+                  </p>
+                )}
               </div>
 
               {facultyReport.length > 0 ? (
