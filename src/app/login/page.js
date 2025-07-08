@@ -52,6 +52,7 @@ export default function LoginPage() {
       redirect: false,
     });
 
+    console.log("Login response:", res);
     setLoading(false);
     if (res.ok) {
       router.push("/");

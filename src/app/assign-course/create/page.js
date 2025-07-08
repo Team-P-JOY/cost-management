@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import axios from "axios";
 import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -35,12 +35,15 @@ export default function Detail() {
   const [filterData, setFilterData] = useState([]);
 
   useEffect(() => {
+    console.log("Selected type changed:", selected);
     if (selected === "0") {
       setFilterData(data.course);
     } else {
       setFilterData(data.course.filter((item) => item.type === selected));
     }
   }, [selected]);
+
+  useEffect(() => {}, [filterData]);
 
   useEffect(() => {
     setLoading(true);
@@ -73,7 +76,6 @@ export default function Detail() {
     fetchData();
   }, [facultyId, schId]);
 
-  
   const handleCreate = async (courseid) => {
     const term = data.term.find((item) => item.schId == schId);
     const section = filterData.find(
@@ -97,10 +99,10 @@ export default function Detail() {
   };
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "asc" });
+
   const processedData = useMemo(() => {
     let result = [...filterData];
 
-   
     if (search.trim() !== "") {
       result = result.filter((item) => {
         const combined = `${item.coursecode} ${item.coursename}`.toLowerCase();
@@ -108,7 +110,6 @@ export default function Detail() {
       });
     }
 
-    
     if (sort.key !== "") {
       result.sort((a, b) => {
         const valA = a[sort.key];
@@ -124,7 +125,7 @@ export default function Detail() {
     }
 
     return result;
-  }, [data, search, sort]);
+  }, [data, search, sort, selected]);
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
     { name: "กำหนดรายวิชา", link: "/assign-course" },
@@ -168,7 +169,8 @@ export default function Detail() {
         <div className="flex justify-center">
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => handleCreate(item.courseid)}>
+            onClick={() => handleCreate(item.courseid)}
+          >
             <FiCheckCircle className="w-4 h-4" />
             เลือก
           </button>
@@ -180,7 +182,8 @@ export default function Detail() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
+      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
+    >
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
@@ -198,7 +201,8 @@ export default function Detail() {
                   `/assign-course/create?facultyId=${e.target.value}&schId=${schId}`
                 );
               }}
-              className={className.select}>
+              className={className.select}
+            >
               <option value="" disabled>
                 เลือกสำนักวิชา
               </option>
@@ -220,7 +224,8 @@ export default function Detail() {
                   `/assign-course/create?facultyId=${facultyId}&schId=${e.target.value}`
                 );
               }}
-              className={className.select}>
+              className={className.select}
+            >
               <option value="" disabled>
                 เลือกภาคการศึกษา
               </option>
@@ -241,7 +246,8 @@ export default function Detail() {
               ].map((option) => (
                 <label
                   key={option.id}
-                  className="flex items-center space-x-2 cursor-pointer">
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
                   <input
                     type="radio"
                     name="options"
@@ -291,7 +297,8 @@ export default function Detail() {
           <button
             type="button"
             className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
-            onClick={() => router.back()}>
+            onClick={() => router.back()}
+          >
             ย้อนกลับ
           </button>
         </div>

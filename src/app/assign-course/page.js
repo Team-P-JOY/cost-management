@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
+import AddChildCourseModal from "@/components/AddChildCourseModal";
 import axios from "axios";
 import { navigation } from "@/lib/params";
 import { useSession } from "next-auth/react";
@@ -16,6 +17,14 @@ import {
   FiSearch,
   FiXCircle,
 } from "react-icons/fi";
+import {
+  Armchair,
+  ChartBarIcon,
+  ChevronsRight,
+  PersonStanding,
+  User2,
+  X,
+} from "lucide-react";
 
 export default function List() {
   const [search, setSearch] = useState("");
@@ -24,7 +33,6 @@ export default function List() {
   const labgroupName = session?.user.userInfo.labgroupName;
   const userlogin = session?.user.userRole;
   const userIdlogin = session?.user.person_id;
-  console.log("userlogin", userlogin, userIdlogin, labgroupName);
   const searchParams = useSearchParams();
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
@@ -36,10 +44,28 @@ export default function List() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [schId, setSchId] = useState(searchParams.get("schId") || "");
+  const [showAddChildModal, setShowAddChildModal] = useState(false);
+  const [selectedParentLabId, setSelectedParentLabId] = useState(null);
 
   const _onPressAdd = () => {
     router.push("/assign-course/create?schId=" + schId);
   };
+
+  const _onPressAddChild = (labId) => {
+    setSelectedParentLabId(labId);
+    setShowAddChildModal(true);
+  };
+
+  const _onCloseAddChildModal = () => {
+    setShowAddChildModal(false);
+    setSelectedParentLabId(null);
+  };
+
+  const _onAddChildSuccess = async () => {
+    await toastDialog("เพิ่มรายวิชาย่อยเรียบร้อย!", "success");
+    setReload(reload + 1);
+  };
+
   const _onPressEdit = (id) => {
     router.push(`/assign-course/${id}`);
   };
@@ -101,13 +127,33 @@ export default function List() {
       ),
     },
     {
-      key: "coursename",
+      key: "coursecode",
       content: "รายวิชา",
       render: (item) => (
         <div className="flex flex-col">
           <p className="block">
             {item.coursecode} {item.coursename}
           </p>
+          <ul className="list-disc list-inside ml-4 mt-2">
+            {item.sub.map((sub, iSub) => (
+              <li
+                key={iSub}
+                className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1"
+              >
+                <ChevronsRight className="w-4 h-4" /> {sub.coursecode}{" "}
+                {sub.coursename}{" "}
+                <div
+                  className="inline-block ml-2 cursor-pointer text-red-500 hover:text-red-700 flex items-center gap-1 border border-red-500 rounded px-2 py-1"
+                  onClick={() => {
+                    return _onPressDelete(sub.labId);
+                  }}
+                >
+                  <FiTrash2 className="w-3 h-3" />{" "}
+                  <span className="text-xs">ลบ</span>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       ),
     },
@@ -115,6 +161,7 @@ export default function List() {
     {
       key: "facultyname",
       content: "สำนักวิชา",
+      width: "200",
       render: (item) => (
         <div className="flex flex-col">
           <p className="block">{item.facultyname}</p>
@@ -126,12 +173,13 @@ export default function List() {
     {
       key: "section",
       content: "รายละเอียดวิชา",
-      width: "300",
+      width: "120",
       render: (item) => (
         <div className="flex flex-col">
-          <p className="block">จำนวนกลุ่มเรียน : {item.section} กลุ่ม</p>
-          <p className="block opacity-70">
-            จำนวนนักศึกษา : {item.enrollseat} คน | {item.totalseat} ที่นั่ง
+          <p className="block">กลุ่มเรียน : {item.section}</p>
+          <p className="block opacity-70 flex items-center gap-1 ">
+            <User2 className="w-4 h-4" /> {item.enrollseat} |{" "}
+            <Armchair className="w-4 h-4" /> {item.totalseat}
           </p>
         </div>
       ),
@@ -140,7 +188,7 @@ export default function List() {
     {
       key: "fullname",
       content: "รายละเอียดห้องปฎิบัติการ",
-      width: "300",
+      width: "210",
       render: (item) => {
         if (!item.labgroupName) {
           return (
@@ -153,10 +201,8 @@ export default function List() {
         }
         return (
           <div className="flex flex-col">
-            <p className="block">{item.labgroupName}</p>
-            <p className="block opacity-70">
-              ผู้รับผิดชอบหลัก : {item.fullname}
-            </p>
+            <p className="block">{item.fullname}</p>
+            <p className="text-xs block opacity-70">{item.labgroupName}</p>
           </div>
         );
       },
@@ -164,16 +210,27 @@ export default function List() {
     {
       key: "labId",
       content: "จัดการ",
-      width: "100",
+      width: "250",
       sort: false,
       export: false,
       render: (item) => (
         <div className="flex gap-1">
           <button
+            className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => {
+              return _onPressAddChild(item.labId);
+            }}
+          >
+            <FiPlus className="w-4 h-4" />
+            รายวิชาย่อย
+          </button>
+
+          <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressEdit(item.labId);
-            }}>
+            }}
+          >
             <FiEdit className="w-4 h-4" />
             แก้ไข
           </button>
@@ -181,7 +238,8 @@ export default function List() {
             className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressDelete(item.labId);
-            }}>
+            }}
+          >
             <FiTrash2 className="w-4 h-4" />
             ลบ
           </button>
@@ -194,7 +252,7 @@ export default function List() {
     if (userlogin === "แอดมิน") {
       result = data.data;
     } else if (userlogin === "หัวหน้าฝ่าย") {
-      result = data.data.filter((item) => {      
+      result = data.data.filter((item) => {
         return (
           item.userCreated == userIdlogin || item.labgroupName === labgroupName
         );
@@ -229,7 +287,8 @@ export default function List() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title="แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
+      title="แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
+    >
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between">
           <div>
@@ -244,7 +303,8 @@ export default function List() {
                   setSchId(e.target.value);
                   router.push(`/assign-course?schId=${e.target.value}`);
                 }}
-                className="block bg-white px-4 py-2 border rounded-md dark:bg-gray-800">
+                className="block bg-white px-4 py-2 border rounded-md dark:bg-gray-800"
+              >
                 <option value="" disabled>
                   กรุณาเลือก
                 </option>
@@ -258,7 +318,8 @@ export default function List() {
 
             <button
               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={_onPressAdd}>
+              onClick={_onPressAdd}
+            >
               <FiPlus className="w-4 h-4" />
               เพิ่มรายวิชา
             </button>
@@ -302,6 +363,14 @@ export default function List() {
           )}
         </div>
       </div>
+
+      {/* Add Child Course Modal */}
+      <AddChildCourseModal
+        isOpen={showAddChildModal}
+        onClose={_onCloseAddChildModal}
+        parentLabId={selectedParentLabId}
+        onSuccess={_onAddChildSuccess}
+      />
     </Content>
   );
 }
