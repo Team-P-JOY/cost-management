@@ -87,14 +87,20 @@ export const authOptions = {
       return token;
     },
     async session({ session, token }) {
-      session.user.avatar = token.avatar;
-      session.user.person_id = token.person_id;
-      session.user.username = token.username;
-      session.user.userInfo = token.userInfo;
-      session.user.userRole = token.userRole;
-      session.user.userAccess = token.userAccess;
+      if (token) {
+        session.user.avatar = token.avatar;
+        session.user.person_id = token.person_id;
+        session.user.username = token.username;
+        session.user.userInfo = token.userInfo;
+        session.user.userRole = token.userRole;
+        session.user.userAccess = token.userAccess;
+      }
       return session;
     },
+  },
+  pages: {
+    signIn: '/login',
+    error: '/login',
   },
 };
 
