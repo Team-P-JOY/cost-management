@@ -182,7 +182,7 @@ export default function List() {
               </select>
             </div>
             <div className="flex gap-2 items-center">
-              <label className={className.label}>เทอมการศึกษา :</label>
+              <label className={className.label}>ภาคการศึกษา :</label>
               <select
                 value={schId}
                 onChange={(e) => {
@@ -193,7 +193,7 @@ export default function List() {
                 }}
                 className="block px-4 py-2 border rounded-md dark:bg-gray-800"
               >
-                <option value="">แสดงทุกเทอมการศึกษา</option>
+                <option value="">แสดงทุกภาคการศึกษา</option>
                 {data.semester.map((item) => (
                   <option key={item.schId} value={item.schId}>
                     เทอม {item.semester}/{item.acadyear}

@@ -211,7 +211,7 @@ export default function Detail() {
           </div>
 
           <div className="sm:col-span-6">
-            <label className={className.label}>เทอมการศึกษา</label>
+            <label className={className.label}>ภาคการศึกษา</label>
             <select
               value={schId}
               onChange={(e) => {
@@ -222,7 +222,7 @@ export default function Detail() {
               }}
               className={className.select}>
               <option value="" disabled>
-                เลือกเทอมการศึกษา
+                เลือกภาคการศึกษา
               </option>
               {data.term.map((item) => (
                 <option key={item.schId} value={item.schId}>

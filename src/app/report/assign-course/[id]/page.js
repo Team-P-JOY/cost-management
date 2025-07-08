@@ -434,7 +434,7 @@ export default function Detail() {
                       <i>สำนักวิชา</i> : {data.course?.coursename}
                     </div>
                     <div className="sm:col-span-8">
-                      <i>เทอมการศึกษา</i> : {data.class?.[0]?.semester}/
+                      <i>ภาคการศึกษา</i> : {data.class?.[0]?.semester}/
                       {data.class?.[0]?.acadyear}
                     </div>
                     <div className="sm:col-span-4">

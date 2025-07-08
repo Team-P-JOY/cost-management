@@ -22,6 +22,8 @@ async function getCourse(courseId) {
   );
 }
 
+
+
 async function getLabgroup() {
   return await executeQuery(
     `SELECT LABGROUP_ID, LABGROUP_NAME
@@ -68,6 +70,27 @@ async function getClass(courseId, schId) {
   return await executeQuery(
     `SELECT CLASS.CLASSID, CLASS.ACADYEAR, CLASS.SEMESTER, CLASS.SECTION, CLASS.TOTALSEAT, CLASS.CLASSNOTE
     FROM PBL_AVSREGCLASS_V CLASS 
+    INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = :schId
+      AND SCH.FLAG_DEL = 0
+      AND CLASS.ACADYEAR = SCH.ACADYEAR
+      AND CLASS.SEMESTER = SCH.SEMESTER
+    WHERE CLASS.COURSEID = :courseId
+    ORDER BY CLASS.SECTION ASC`,
+    {
+      courseId,
+      schId,
+    }
+  );
+}
+
+async function getParentClass(courseId, schId) {
+  return await executeQuery(
+    `SELECT CLASS.CLASSID, CLASS.ACADYEAR, CLASS.SEMESTER, CLASS.SECTION, CLASS.TOTALSEAT, CLASS.CLASSNOTE
+    FROM PBL_AVSREGCLASS_V CLASS 
+    INNER JOIN CST_LABCOURSE cst_labcourse ON cst_labcourse.courseid = CLASS.COURSEID 
+      AND cst_labcourse.flag_del = 0
+      AND cst_labcourse.lab_parent_id = 0
+      AND cst_labcourse.courseid != :courseId
     INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = :schId
       AND SCH.FLAG_DEL = 0
       AND CLASS.ACADYEAR = SCH.ACADYEAR
@@ -338,6 +361,7 @@ export async function GET(req) {
     } else {
       const course = await getCourse(courseId);
       const classData = await getClass(courseId, schId);
+      const parentClass = await getParentClass(courseId, schId);
 
       return NextResponse.json({
         success: true,
@@ -346,6 +370,7 @@ export async function GET(req) {
         class: classData,
         users: users,
         labgroup: labgroup,
+        parentClass: parentClass,
       });
     }
   } catch (error) {

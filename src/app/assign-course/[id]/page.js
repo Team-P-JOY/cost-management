@@ -93,6 +93,7 @@ export default function Detail() {
       labroom: "",
       hour: "",
       // labgroupNum: "",
+      lab_parent_id: "",
       personId: "",
     },
     validationSchema: validationSchema,
@@ -589,7 +590,7 @@ export default function Detail() {
                         <i>สำนักวิชา</i> : {data.course?.facultyname}
                       </div>
                       <div className="sm:col-span-8">
-                        <i>เทอมการศึกษา</i> : {data.class?.[0]?.semester}/
+                        <i>ภาคการศึกษา</i> : {data.class?.[0]?.semester}/
                         {data.class?.[0]?.acadyear}
                       </div>
                       <div className="sm:col-span-4">
@@ -749,6 +750,35 @@ export default function Detail() {
                                   {formik.errors.hour}
                                 </p>
                               )}
+                            </div>
+
+                            <div className="sm:col-span-4">
+                              <label className={className.label}>
+                                แม่ของฉัน
+                              </label>
+                             <select
+                                name="lab_parent_id"
+                                value={formik.values.personId || ""}
+                                onChange={formik.handleChange}
+                                className={`${className.select} ${
+                                  formik.touched.personId &&
+                                  formik.errors.personId
+                                    ? "border-red-500"
+                                    : ""
+                                }`}>
+                                <option value="" disabled>
+                                  {user.length > 0
+                                    ? "เลือกผู้รับผิดชอบหลัก"
+                                    : "- ไม่มีข้อมูล -"}
+                                </option>
+                                {user.map((user, index) => (
+                                  <option
+                                    key={user.personId + index}
+                                    value={user.personId}>
+                                    {user.fullname} ({user.roleName})
+                                  </option>
+                                ))}
+                              </select>
                             </div>
                           </div>
                         </div>
