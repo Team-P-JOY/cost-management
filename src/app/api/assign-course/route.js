@@ -309,6 +309,7 @@ export async function GET(req) {
             AND SCH.SEMESTER = LAB.SEMESTER
             AND SCH.ACADYEAR = LAB.ACADYEAR
         WHERE LAB.FLAG_DEL = 0 AND LAB.LABGROUP_ID = :labgroupId
+        AND (LAB.LAB_PARENT_ID IS NULL OR LAB.LAB_PARENT_ID = 0)
         GROUP BY LAB.LAB_ID
         ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`,
             {
@@ -351,6 +352,7 @@ export async function GET(req) {
             AND SCH.ACADYEAR = REG.ACADYEAR
         WHERE LAB.FLAG_DEL = 0
         AND SCH.SCH_ID IS NOT NULL
+        AND (LAB.LAB_PARENT_ID IS NULL OR LAB.LAB_PARENT_ID = 0)
         GROUP BY LAB.LAB_ID
         ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`,
             {

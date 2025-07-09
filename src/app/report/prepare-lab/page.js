@@ -10,8 +10,7 @@ import axios from "axios";
 export default function List() {
   const searchParams = useSearchParams();
   const breadcrumb = [
-    { name: "รายงาน" },
-    {
+    { name: "รายงาน" },    {
       name: "รายงานแผนการให้บริการห้องปฎิบัติการ",
       link: "/report/assign-course",
     },
@@ -74,7 +73,7 @@ export default function List() {
       width: "100",
       render: (item) => (
         <div>
-          เทอม {item.semester}/{item.acadyear}
+         {item.semester}/{item.acadyear}
         </div>
       ),
     },
@@ -196,7 +195,7 @@ export default function List() {
                 <option value="">แสดงทุกภาคการศึกษา</option>
                 {data.semester.map((item) => (
                   <option key={item.schId} value={item.schId}>
-                    เทอม {item.semester}/{item.acadyear}
+                     {item.semester}/{item.acadyear}
                   </option>
                 ))}
               </select>

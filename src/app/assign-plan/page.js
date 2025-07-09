@@ -32,10 +32,7 @@ export default function List() {
     router.push(`/assign-course/${id}`);
   };
   const _onPressDelete = async (id) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
 
     if (result.isConfirmed) {
       await axios.delete(`/api/assign-course?id=${id}`);

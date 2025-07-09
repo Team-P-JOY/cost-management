@@ -110,7 +110,7 @@ export default function List() {
       width: "100",
       render: (item) => (
         <div>
-          เทอม {item.semester}/{item.acadyear}
+           {item.semester}/{item.acadyear}
         </div>
       ),
     },

@@ -231,7 +231,7 @@ export default function Detail() {
               </option>
               {data.term.map((item) => (
                 <option key={item.schId} value={item.schId}>
-                  เทอม {item.semester}/{item.acadyear}
+                   {item.semester}/{item.acadyear}
                 </option>
               ))}
             </select>

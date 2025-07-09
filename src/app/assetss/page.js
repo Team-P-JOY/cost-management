@@ -23,11 +23,13 @@ export default function List() {
     {
       name:
         idType === "1"
-          ? "ครุภัณฑ์"
+          ? "ครุภัณฑ์ห้องปฎิบัติการ"
           : idType === "2"
           ? "วัสดุไม่สิ้นเปลือง"
           : idType === "3"
           ? "วัสดุสิ้นเปลือง"
+          : idType === "4"
+          ? "ครุภัณฑ์วิทยาศาสตร์"
           : "ข้อมูลไม่ถูกต้อง",
       link: "/assetss",
     },
@@ -191,7 +193,7 @@ export default function List() {
             onClick={() => {
               return _onPressEdit(item.assetId);
             }}>
-            <FiEdit className="w-4 h-4" /> แก้ไข 
+            <FiEdit className="w-4 h-4" /> แก้ไข
           </button>
           <button
             className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -210,11 +212,13 @@ export default function List() {
       breadcrumb={breadcrumb}
       title={
         idType === "1"
-          ? "ครุภัณฑ์"
+          ? "ครุภัณฑ์ห้องปฎิบัติการ"
           : idType === "2"
           ? "วัสดุไม่สิ้นเปลือง"
           : idType === "3"
           ? "วัสดุสิ้นเปลือง"
+          : idType === "4"
+          ? "ครุภัณฑ์วิทยาศาสตร์"
           : "ข้อมูลไม่ถูกต้อง"
       }>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
@@ -238,11 +242,13 @@ export default function List() {
           <div className="flex gap-2 items-center p-4">
             <h3 className="text-2xl items-left font-semibold ">
               {idType === "1"
-                ? "ครุภัณฑ์"
+                ? "ครุภัณฑ์ห้องปฎิบัติการ"
                 : idType === "2"
                 ? "วัสดุไม่สิ้นเปลือง"
                 : idType === "3"
                 ? "วัสดุสิ้นเปลือง"
+                : idType === "4"
+                ? "ครุภัณฑ์วิทยาศาสตร์"
                 : "ข้อมูลไม่ถูกต้อง"}
             </h3>
           </div>
@@ -260,7 +266,7 @@ export default function List() {
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <TableList meta={meta} data={employees} loading={loading} />
+            <TableList meta={meta} data={employees || []} loading={loading} />
           )}
         </div>
       </div>

@@ -466,10 +466,7 @@ export default function Detail() {
 
   const _onPressDeleteUser = async (labcourseUserId) => {
     console.log("labcourseUserId", labcourseUserId);
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
     if (result.isConfirmed) {
       const response = await axios.delete(
         `/api/assign-course/course-user?id=${labcourseUserId}&labId=${id}`
@@ -507,10 +504,7 @@ export default function Detail() {
   };
 
   const _onPressDeleteInvent = async (id, type) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
 
     if (result.isConfirmed) {
       if (type === 1) {
@@ -545,8 +539,7 @@ export default function Detail() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
-    >
+      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
       <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-300 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
@@ -572,8 +565,7 @@ export default function Detail() {
                       activeTab === tab.id
                         ? "text-blue-600 border-b-0 rounded-t-lg dark:text-blue-300"
                         : "text-gray-500 border-x-0 border-t-0 dark:text-white"
-                    }`}
-                  >
+                    }`}>
                     <span>{tab.label}</span>
                   </button>
                 ))}
@@ -629,16 +621,14 @@ export default function Detail() {
                                   formik.errors.labgroupId
                                     ? "border-red-500"
                                     : ""
-                                }`}
-                              >
+                                }`}>
                                 <option value="" disabled>
                                   เลือกกลุ่มห้องปฎิบัติการ
                                 </option>
                                 {data.labgroup.map((labgroup) => (
                                   <option
                                     key={labgroup.labgroupId}
-                                    value={labgroup.labgroupId}
-                                  >
+                                    value={labgroup.labgroupId}>
                                     {labgroup.labgroupName}
                                   </option>
                                 ))}
@@ -663,8 +653,7 @@ export default function Detail() {
                                   formik.errors.personId
                                     ? "border-red-500"
                                     : ""
-                                }`}
-                              >
+                                }`}>
                                 <option value="" disabled>
                                   {user.length > 0
                                     ? "เลือกผู้รับผิดชอบหลัก"
@@ -673,8 +662,7 @@ export default function Detail() {
                                 {user.map((user, index) => (
                                   <option
                                     key={user.personId + index}
-                                    value={user.personId}
-                                  >
+                                    value={user.personId}>
                                     {user.fullname} ({user.roleName})
                                   </option>
                                 ))}
@@ -765,14 +753,12 @@ export default function Detail() {
                       <button
                         type="button"
                         className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
-                        onClick={() => router.back()}
-                      >
+                        onClick={() => router.back()}>
                         ยกเลิก
                       </button>
                       <button
                         type="submit"
-                        className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
-                      >
+                        className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
                         บันทึกข้อมูล
                       </button>
                     </div>
@@ -792,8 +778,7 @@ export default function Detail() {
                           <button
                             type="button"
                             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={() => _onPressAddUser()}
-                          >
+                            onClick={() => _onPressAddUser()}>
                             <FiPlus className="w-4 h-4" />
                             เพิ่มใหม่
                           </button>
@@ -832,8 +817,7 @@ export default function Detail() {
                                     className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                     onClick={() => {
                                       _onPressEditUser(item.labcourseUserId);
-                                    }}
-                                  >
+                                    }}>
                                     <FiEdit className="w-4 h-4" />
                                     แก้ไข
                                   </button>
@@ -842,8 +826,7 @@ export default function Detail() {
                                     className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                     onClick={() =>
                                       _onPressDeleteUser(item.labcourseUserId)
-                                    }
-                                  >
+                                    }>
                                     <FiTrash2 className="w-4 h-4" />
                                     ลบ
                                   </button>
@@ -990,8 +973,7 @@ export default function Detail() {
       <Dialog
         open={inventFormModal}
         onClose={_onCloseInventForm}
-        className="relative z-10"
-      >
+        className="relative z-10">
         <DialogBackdrop
           transition
           className="fixed inset-0 text-gray-900 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
@@ -1001,8 +983,7 @@ export default function Detail() {
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <DialogPanel
               transition
-              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-full sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
-            >
+              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-full sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95">
               {loadingInvent ? (
                 <div className="p-6 text-center text-gray-500 dark:text-gray-400">
                   กำลังโหลดข้อมูล...
@@ -1024,8 +1005,7 @@ export default function Detail() {
                             inventForm.errors.assetId
                               ? "border-red-500"
                               : ""
-                          }`}
-                        >
+                          }`}>
                           <option value="" disabled>
                             เลือกวัสดุที่เลือกใช้
                           </option>
@@ -1125,16 +1105,14 @@ export default function Detail() {
                   <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
                     <button
                       type="submit"
-                      className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto"
-                    >
+                      className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto">
                       ยืนยัน
                     </button>
                     <button
                       type="button"
                       data-autofocus
                       onClick={() => _onCloseInventForm(false)}
-                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                    >
+                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto">
                       ยกเลิก
                     </button>
                   </div>
@@ -1148,8 +1126,7 @@ export default function Detail() {
       <Dialog
         open={userFormModal}
         onClose={_onCloseUserForm}
-        className="relative z-10"
-      >
+        className="relative z-10">
         <DialogBackdrop
           transition
           className="fixed inset-0 text-gray-900 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
@@ -1159,8 +1136,7 @@ export default function Detail() {
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <DialogPanel
               transition
-              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-full sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
-            >
+              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-full sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95">
               {loadingUser ? (
                 <div className="p-6 text-center text-gray-500 dark:text-gray-400">
                   กำลังโหลดข้อมูล...
@@ -1180,16 +1156,14 @@ export default function Detail() {
                             userForm.errors.personId
                               ? "border-red-500"
                               : ""
-                          }`}
-                        >
+                          }`}>
                           <option value="" disabled>
                             เลือกผู้รับผิดชอบ
                           </option>
                           {data.users.map((inv, index) => (
                             <option
                               key={inv.personId + index}
-                              value={inv.personId}
-                            >
+                              value={inv.personId}>
                               {inv.fullname}
                             </option>
                           ))}
@@ -1214,8 +1188,7 @@ export default function Detail() {
                             userForm.touched.roleId && userForm.errors.roleId
                               ? "border-red-500"
                               : ""
-                          }`}
-                        >
+                          }`}>
                           <option value="" disabled>
                             เลือกตำแหน่งที่รับผิดชอบ
                           </option>
@@ -1236,16 +1209,14 @@ export default function Detail() {
                   <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
                     <button
                       type="submit"
-                      className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto"
-                    >
+                      className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto">
                       ยืนยัน
                     </button>
                     <button
                       type="button"
                       data-autofocus
                       onClick={() => _onCloseUserForm(false)}
-                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                    >
+                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto">
                       ยกเลิก
                     </button>
                   </div>

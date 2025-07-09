@@ -157,16 +157,18 @@ export default function AssetForm() {
             <div className="grid md:grid-cols-2 gap-4">
               {/* Asset Names */}
               <div className="form-control">
-                <label className={className.label}>ชื่อ (ภาษาไทย) *</label>
+                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  ชื่อ (ภาษาไทย) *
+                </label>
                 <input
                   type="text"
                   {...register("assetNameTh", {
                     required: requiredMessage,
                   })}
-                  className={className.input}
+                  className="block w-full px-3 py-1.5 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white text-black focus:outline-indigo-600"
                 />
                 {errors.assetNameTh && (
-                  <label className={className.label}>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                     <span className="label-text-alt text-error">
                       {errors.assetNameTh.message}
                     </span>

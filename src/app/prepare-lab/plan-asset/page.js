@@ -68,7 +68,7 @@ export default function Detail() {
   const [assetInfo, setAssetInfo] = useState(null);
 
   const tabs = [
-    { id: "tab1", label: "ครุภัณฑ์" },
+    { id: "tab1", label: "ครุภัณฑ์ห้องปฎิบัติการ" },
     { id: "tab2", label: "วัสดุไม่สิ้นเปลือง" },
     { id: "tab3", label: "วัสดุสิ้นเปลือง" },
   ];
@@ -412,10 +412,7 @@ export default function Detail() {
   };
 
   const _onPressDeleteInvent = async (id, type) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
 
     if (result.isConfirmed) {
       if (type === 1) {
@@ -485,7 +482,7 @@ export default function Detail() {
                     {[
                       {
                         type: 1,
-                        name: "ครุภัณฑ์",
+                        name: "ครุภัณฑ์ห้องปฎิบัติการ",
                         asset: labasset.type1,
                       },
                     ].map((type) => (

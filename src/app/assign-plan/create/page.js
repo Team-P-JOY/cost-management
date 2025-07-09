@@ -87,8 +87,7 @@ export default function Detail() {
               router.push(
                 `/assign-course/new?courseId=${item.courseid}&schId=${schId}`
               )
-            }
-          >
+            }>
             <FiCheckCircle className="w-4 h-4" />
             เลือก
           </button>
@@ -100,8 +99,7 @@ export default function Detail() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
-    >
+      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
@@ -119,8 +117,7 @@ export default function Detail() {
                   `/assign-course/create?facultyId=${e.target.value}&schId=${schId}`
                 );
               }}
-              className={className.select}
-            >
+              className={className.select}>
               <option value="" disabled>
                 เลือกสำนักวิชา
               </option>
@@ -142,14 +139,13 @@ export default function Detail() {
                   `/assign-course/create?facultyId=${facultyId}&schId=${e.target.value}`
                 );
               }}
-              className={className.select}
-            >
+              className={className.select}>
               <option value="" disabled>
                 เลือกภาคการศึกษา
               </option>
               {data.term.map((item) => (
                 <option key={item.schId} value={item.schId}>
-                  เทอม {item.semester}/{item.acadyear}
+                  {item.semester}/{item.acadyear}
                 </option>
               ))}
             </select>

@@ -1,5 +1,4 @@
 "use client";
-
 import { use, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
@@ -31,8 +30,12 @@ export default function Detail() {
   const idParam = searchParams.get("labId");
   const labjobId = searchParams.get("labjobId");
 
-  const labId = parseInt(idParam, 10);
+  const labId = idParam === "new" ? "new" : parseInt(idParam, 10);
   const isNew = labId === "new";
+  
+  // Debug logs
+  console.log("URL Parameters:", { idParam, labjobId, labId, isNew });
+  
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("tab1");
   const [Assetbroken, setAssetbroken] = useState([]);
@@ -42,11 +45,13 @@ export default function Detail() {
     type1: [],
     type2: [],
     type3: [],
+    type4: [],
   });
   const [uselabasset, setUseLabasset] = useState({
     type1: [],
     type2: [],
     type3: [],
+    type4: [],
   });
 
   const [courseUser, setCourseUser] = useState([]);
@@ -67,10 +72,11 @@ export default function Detail() {
   const [assetInfo, setAssetInfo] = useState(null);
 
   const tabs = [
-    { id: "tab1", label: "ครุภัณฑ์" },
+    { id: "tab1", label: "ครุภัณฑ์ห้องปฎิบัติการ" },
     { id: "tab2", label: "วัสดุไม่สิ้นเปลือง" },
     { id: "tab3", label: "วัสดุสิ้นเปลือง" },
-    { id: "tab4", label: "อุปกรณ์ชำรุด" },
+    { id: "tab4", label: "ครุภัณฑ์วิทยาศาสตร์" },
+    { id: "tab5", label: "อุปกรณ์ชำรุด" },
   ];
   const validationInventForm = Yup.object({
     assetId: Yup.string().required("กรุณาเลือกข้อมูล"),
@@ -120,14 +126,12 @@ export default function Detail() {
       values.unitName = invent.find(
         (inv) => inv.assetId === parseInt(values.assetId)
       )?.unitName;
-      // values.unitPrice = invent.find(
-      //   (inv) => inv.assetId === parseInt(values.assetId)
-      // )?.unitPrice;
+      
       values.invgroupName = invent.find(
         (inv) => inv.assetId === parseInt(values.assetId)
       )?.invgroupName;
 
-      // ตรวจสอบค่าหลังจากกำหนดค่า assetNameTh และอื่น ๆ
+     
       console.log("Values after asset info assignment:", values);
 
       if (values.type === 1) {
@@ -173,6 +177,21 @@ export default function Detail() {
           setUseLabasset((prevLabasset) => ({
             ...prevLabasset,
             type3: [...(prevLabasset.type3 || []), values],
+          }));
+        }
+      } else if (values.type === 4) {
+        if (values.labjobAssetId) {
+          setUseLabasset((prevLabasset) => ({
+            ...prevLabasset,
+            type4: prevLabasset.type4.map((item) =>
+              item.labjobAssetId === values.labjobAssetId ? values : item
+            ),
+          }));
+        } else {
+          values.labjobAssetId = "";
+          setUseLabasset((prevLabasset) => ({
+            ...prevLabasset,
+            type4: [...(prevLabasset.type4 || []), values],
           }));
         }
       }
@@ -232,11 +251,8 @@ export default function Detail() {
     console.log("Saving Lab Asset with values:", values);
     try {
       const url = `/api/use-asset`;
-
-      // Use PUT if labjobAssetId exists, otherwise POST for a new entry
       const method = values.labjobAssetId ? "put" : "post";
 
-      // Ensure that labjobId is included in the values when updating an existing asset
       if (method === "put" && !searchParams.get("labjobId")) {
         console.error("labjobId is required for PUT requests.");
         return {
@@ -262,12 +278,12 @@ export default function Detail() {
 
       // Check the response from the API
       if (response.data.success) {
-        // console.log("Data saved:", response.data);
+        
         toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
         fetchData();
         return response.data; // Return the response data for further use
       } else {
-        // console.error("Save failed:", response.data);
+        
         toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
         fetchData();
         return response.data;
@@ -280,13 +296,11 @@ export default function Detail() {
 
   const formik = useFormik({
     initialValues: {
-      labjobAssetId: "", // กำหนดให้เป็นค่าว่างถ้ากำลังเพิ่มข้อมูลใหม่
-      // ค่าเริ่มต้นอื่น ๆ ที่เกี่ยวข้อง
+      labjobAssetId: "", 
     },
     onSubmit: async (values) => {
       // ตรวจสอบค่า labjobAssetId
-      const isNew = !values.labjobAssetId; // ถ้าไม่มี labjobAssetId, หมายถึงข้อมูลใหม่
-
+      const isNew = !values.labjobAssetId; 
       console.log(
         isNew
           ? "Adding new asset with values:"
@@ -295,8 +309,7 @@ export default function Detail() {
       );
 
       const result = await saveLabAsset(values, isNew); // ส่งข้อมูลไปยัง API
-
-      // ถ้าเรียบร้อย, จะไปที่หน้าถัดไปหรือรีโหลดหน้า
+      
       if (result.success) {
         await router.push(
           `/prepare-lab/Use-asset?id=${searchParams.get(
@@ -345,6 +358,7 @@ export default function Detail() {
             type1: data.labasset?.filter((item) => item.type === 1) || [],
             type2: data.labasset?.filter((item) => item.type === 2) || [],
             type3: data.labasset?.filter((item) => item.type === 3) || [],
+            type4: data.labasset?.filter((item) => item.type === 4) || [],
           });
 
           setUseLabasset({
@@ -365,6 +379,13 @@ export default function Detail() {
             type3:
               data.uselabasset
                 ?.filter((item) => item.type === 3)
+                .map((item) => ({
+                  ...item,
+                  userId: parseInt(session.user.person_id, 10) || 0,
+                })) || [],
+            type4:
+              data.uselabasset
+                ?.filter((item) => item.type === 4)
                 .map((item) => ({
                   ...item,
                   userId: parseInt(session.user.person_id, 10) || 0,
@@ -477,6 +498,8 @@ export default function Detail() {
       asset = uselabasset.type2.find((item) => item.labjobAssetId === id);
     } else if (type === 3) {
       asset = uselabasset.type3.find((item) => item.labjobAssetId === id);
+    } else if (type === 4) {
+      asset = uselabasset.type4.find((item) => item.labjobAssetId === id);
     }
 
     if (!asset) {
@@ -487,7 +510,7 @@ export default function Detail() {
     // Setting values for Formik
     inventForm.setValues({
       labjobAssetId: asset.labjobAssetId,
-      assetId: asset.assetId,
+      assetId: asset.assetId.toString(), // Convert to string to match assetOptions
       amountUsed: asset.amountUsed,
       hourUsed: asset.hourUsed || "",
       assetUsedRemark: asset.assetUsedRemark || "",
@@ -499,43 +522,66 @@ export default function Detail() {
       unitPrice: asset.unitPrice,
     });
 
+    // Set asset info for display
+    setAssetInfo({
+      assetId: asset.assetId,
+      assetNameTh: asset.assetNameTh,
+      brandName: asset.brandName,
+      amountUnit: asset.amountUnit,
+      unitName: asset.unitName,
+      unitPrice: asset.unitPrice,
+      invgroupName: asset.invgroupName,
+    });
+
     // Fetch additional asset info if necessary
     await _callInvent(type, labId, asset.assetextraFlag);
   };
 
-  const _onPressDeleteInvent = async (id, type) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+  const _onPressDeleteInvent = async (id, labId, type) => {
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
 
     if (result.isConfirmed) {
+      // Validate parameters
+      if (!labId || labId === "new" || !labjobId) {
+        toastDialog("ข้อมูล labId หรือ labjobId ไม่ถูกต้อง", "error");
+        return;
+      }
+
       if (type === 1) {
         setUseLabasset((prevLabasset) => ({
-          // ตรงนี้เปลี่ยนจาก type1 เป็น type
-          ...prevLabasset, // ตรงนี้เปลี่ยนจาก type1 เป็น type
+          ...prevLabasset,
           type1: prevLabasset.type1.filter((item) => item.labjobAssetId !== id),
         }));
       } else if (type === 2) {
         setUseLabasset((prevLabasset) => ({
           ...prevLabasset,
-          type2: prevLabasset.type1.filter((item) => item.labjobAssetId !== id),
+          type2: prevLabasset.type2.filter((item) => item.labjobAssetId !== id),
         }));
       } else if (type === 3) {
         setUseLabasset((prevLabasset) => ({
           ...prevLabasset,
-          type3: prevLabasset.type1.filter((item) => item.labjobAssetId !== id),
+          type3: prevLabasset.type3.filter((item) => item.labjobAssetId !== id),
+        }));
+      } else if (type === 4) {
+        setUseLabasset((prevLabasset) => ({
+          ...prevLabasset,
+          type4: prevLabasset.type4.filter((item) => item.labjobAssetId !== id),
         }));
       }
       try {
+        console.log("Deleting asset with parameters:", { id, labId, labjobId, type });
+        
+        // ลบข้อมูลใน backend
         await axios.delete(
           `/api/use-asset?id=${id}&userId=${session?.user.person_id}`
         );
         toastDialog("ลบข้อมูลเรียบร้อย!", "success");
+
         const response = await axios.get(
           `/api/use-asset?id=${labId}&labjobId=${labjobId}`
         );
         const data = response.data;
+
         if (data.success) {
           setUseLabasset({
             type1:
@@ -559,27 +605,29 @@ export default function Detail() {
                   ...item,
                   userId: parseInt(session.user.person_id, 10) || 0,
                 })) || [],
+            type4:
+              data.uselabasset
+                ?.filter((item) => item.type === 4)
+                .map((item) => ({
+                  ...item,
+                  userId: parseInt(session.user.person_id, 10) || 0,
+                })) || [],
           });
         }
 
-        // ✅ Navigate to another page and reload if needed
+        // ✅ เปลี่ยนหน้า
         await router.push(
-          `/prepare-lab/Use-asset?id=${searchParams.get(
-            "id"
-          )}&labjobId=${searchParams.get("labjobId")}`
+          `/prepare-lab/Use-asset?labId=${labId}&labjobId=${labjobId}&sId=${session?.user.person_id}`
         );
       } catch (error) {
-        console.error("Error deleting brand:", error);
+        console.error("Error deleting asset:", error);
         alert("เกิดข้อผิดพลาดในการลบข้อมูล");
       }
     }
   };
 
   const _onPressDeleteBroken = async (id) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
 
     if (result.isConfirmed) {
       try {
@@ -788,6 +836,7 @@ export default function Detail() {
                                       onClick={() => {
                                         return _onPressDeleteInvent(
                                           item.labjobAssetId,
+                                          labId,
                                           item.type
                                         );
                                       }}>
@@ -920,6 +969,7 @@ export default function Detail() {
                                       onClick={() => {
                                         return _onPressEditInvent(
                                           item.labjobAssetId,
+                                          item.labId,
                                           item.type
                                         );
                                       }}>
@@ -932,6 +982,7 @@ export default function Detail() {
                                       onClick={() => {
                                         return _onPressDeleteInvent(
                                           item.labjobAssetId,
+                                          labId,
                                           item.type
                                         );
                                       }}>
@@ -1079,6 +1130,7 @@ export default function Detail() {
                                       onClick={() => {
                                         return _onPressDeleteInvent(
                                           item.labjobAssetId,
+                                          labId,
                                           item.type
                                         );
                                       }}>
@@ -1098,6 +1150,156 @@ export default function Detail() {
                   </div>
                 )}
                 {activeTab === "tab4" && (
+                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                    <div className="sm:col-span-12">
+                      <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-indigo-50 dark:bg-gray-800 shadow-md rounded-xl">
+                        <div className="pb-4 border-gray-200 flex justify-between items-center">
+                          <div className="font-xl font-semibold inline">
+                            <span className="pe-2">
+                              บันทึกข้อมูลการใช้ทรัพยากร
+                            </span>
+                            <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
+                              {uselabasset?.type4?.length ?? ""} รายการ
+                            </span>
+                          </div>
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              type="button"
+                              className="cursor-pointer p-2 text-white text-sm bg-red-400 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+                              onClick={() =>
+                                _onPressAddInvent(
+                                  uselabasset?.type4?.[0]?.type ?? 4,
+                                  labjobId,
+                                  labId,
+                                  1
+                                )
+                              }>
+                              <FiPlus className="w-4 h-4" />
+                              เพิ่มรายการนอก
+                            </button>
+                            <button
+                              type="button"
+                              className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+                              onClick={() =>
+                                _onPressAddInvent(
+                                  uselabasset?.type4?.[0]?.type ?? 4,
+                                  labjobId,
+                                  labId,
+                                  0
+                                )
+                              }>
+                              <FiPlus className="w-4 h-4" />
+                              เพิ่มรายการ
+                            </button>
+                          </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-4 border rounded-lg">
+                          <TableList
+                            exports={false}
+                            meta={[
+                              {
+                                content: "รายการ",
+                                key: "assetNameTh",
+                                render: (item) => (
+                                  <div>
+                                    <div>
+                                      {item.assetNameTh} (ราคาต่อหน่วย{" "}
+                                      {item.unitPrice} บาท)
+                                      {""}
+                                      {item.assetextraFlag === "1" ? (
+                                        <span style={{ color: "red" }}>
+                                          {" "}
+                                          (รายการนอก)
+                                        </span>
+                                      ) : (
+                                        ""
+                                      )}
+                                    </div>
+
+                                    <div className="flex gap-2 text-gray-500 dark:text-gray-400 ">
+                                      <div className="text-sm">
+                                        ยี่ห้อ : {item.brandName || "-"}
+                                      </div>
+                                      <div className="text-sm">
+                                        ขนาด : {item.amountUnit || "-"}
+                                      </div>
+                                      <div className="text-sm">
+                                        ห้องปฎิบัติการ :{" "}
+                                        {item.invgroupName || "-"}
+                                      </div>
+                                    </div>
+                                    <div className="text-sm">
+                                      หมายเหตุ : {item.assetUsedRemark || "-"}
+                                    </div>
+                                  </div>
+                                ),
+                              },
+                              {
+                                content: "จำนวน",
+                                width: 100,
+                                className: "text-center",
+                                key: "amountUsed",
+                                render: (item) => {
+                                  return (
+                                    <div>
+                                      {item.amountUsed
+                                        ? item.amountUsed.toLocaleString()
+                                        : "-"}
+                                    </div>
+                                  );
+                                },
+                              },
+
+                              {
+                                content: "หน่วย",
+                                width: 100,
+                                key: "unitName",
+                              },
+                              {
+                                key: "labjobAssetId",
+                                content: "Action",
+                                width: "100",
+                                sort: false,
+                                render: (item) => (
+                                  <div className="flex gap-1">
+                                    <button
+                                      type="button"
+                                      className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      onClick={() => {
+                                        return _onPressEditInvent(
+                                          item.labjobAssetId,
+                                          item.type
+                                        );
+                                      }}>
+                                      <FiEdit className="w-4 h-4" />
+                                      แก้ไข
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      onClick={() => {
+                                        return _onPressDeleteInvent(
+                                          item.labjobAssetId,
+                                          labId,
+                                          item.type
+                                        );
+                                      }}>
+                                      <FiTrash2 className="w-4 h-4" />
+                                      ลบ
+                                    </button>
+                                  </div>
+                                ),
+                              },
+                            ]}
+                            data={uselabasset.type4 || []}
+                            loading={loading}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {activeTab === "tab5" && (
                   <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
                     <div className="sm:col-span-12">
                       <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-indigo-50 dark:bg-gray-800 shadow-md rounded-xl">
@@ -1245,9 +1447,9 @@ export default function Detail() {
                           onSelect={(name, item) => {
                             inventForm.setFieldValue(name, item.value);
                           }}
-                          // error={inventForm.errors.assetId}
+                          error={inventForm.errors.assetId}
                           touched={inventForm.touched.assetId}
-                          // placeholder="พิมพ์หรือเลือกวัสดุ"
+                          placeholder="พิมพ์หรือเลือกวัสดุ"
                         />
                         {inventForm.touched.assetId &&
                           inventForm.errors.assetId && (

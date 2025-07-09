@@ -16,6 +16,8 @@ import {
   FiChevronRight,
   FiSearch,
   FiXCircle,
+  FiChevronDown,
+  FiChevronUp,
 } from "react-icons/fi";
 import {
   Armchair,
@@ -46,6 +48,18 @@ export default function List() {
   const [schId, setSchId] = useState(searchParams.get("schId") || "");
   const [showAddChildModal, setShowAddChildModal] = useState(false);
   const [selectedParentLabId, setSelectedParentLabId] = useState(null);
+  const [expandedItems, setExpandedItems] = useState(new Set()); // สำหรับจัดการการแสดง/ซ่อนรายวิชาย่อย
+
+  // ฟังก์ชันสำหรับ toggle การแสดง/ซ่อนรายวิชาย่อย
+  const toggleExpanded = (labId) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(labId)) {
+      newExpanded.delete(labId);
+    } else {
+      newExpanded.add(labId);
+    }
+    setExpandedItems(newExpanded);
+  };
 
   const _onPressAdd = () => {
     router.push("/assign-course/create?schId=" + schId);
@@ -70,10 +84,7 @@ export default function List() {
     router.push(`/assign-course/${id}`);
   };
   const _onPressDelete = async (id) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
 
     if (result.isConfirmed) {
       await axios.delete(`/api/assign-course?id=${id}`);
@@ -131,29 +142,45 @@ export default function List() {
       content: "รายวิชา",
       render: (item) => (
         <div className="flex flex-col">
-          <p className="block">
-            {item.coursecode} {item.coursename}
-          </p>
-          <ul className="list-disc list-inside ml-4 mt-2">
-            {item.sub.map((sub, iSub) => (
-              <li
-                key={iSub}
-                className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1"
-              >
-                <ChevronsRight className="w-4 h-4" /> {sub.coursecode}{" "}
-                {sub.coursename}{" "}
-                <div
-                  className="inline-block ml-2 cursor-pointer text-red-500 hover:text-red-700 flex items-center gap-1 border border-red-500 rounded px-2 py-1"
-                  onClick={() => {
-                    return _onPressDelete(sub.labId);
-                  }}
-                >
-                  <FiTrash2 className="w-3 h-3" />{" "}
-                  <span className="text-xs">ลบ</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div
+            className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors"
+            onClick={() => toggleExpanded(item.labId)}>
+            <p className="block">
+              {item.coursecode} {item.coursename}
+            </p>
+            {item.sub && item.sub.length > 0 && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                ({item.sub.length} รายวิชาย่อย)
+              </span>
+            )}
+            {item.sub &&
+              item.sub.length > 0 &&
+              (expandedItems.has(item.labId) ? (
+                <FiChevronUp className="w-4 h-4 text-gray-500" />
+              ) : (
+                <FiChevronDown className="w-4 h-4 text-gray-500" />
+              ))}
+          </div>
+          {expandedItems.has(item.labId) && item.sub && item.sub.length > 0 && (
+            <ul className="list-disc list-inside ml-4 mt-2">
+              {item.sub.map((sub, iSub) => (
+                <li
+                  key={iSub}
+                  className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                  <ChevronsRight className="w-4 h-4" /> {sub.coursecode}{" "}
+                  {sub.coursename}{" "}
+                  <div
+                    className="inline-block ml-2 cursor-pointer text-red-500 hover:text-red-700 flex items-center gap-1 border border-red-500 rounded px-2 py-1"
+                    onClick={() => {
+                      return _onPressDelete(sub.labId);
+                    }}>
+                    <FiTrash2 className="w-3 h-3" />{" "}
+                    <span className="text-xs">ลบ</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       ),
     },
@@ -219,8 +246,7 @@ export default function List() {
             className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressAddChild(item.labId);
-            }}
-          >
+            }}>
             <FiPlus className="w-4 h-4" />
             รายวิชาย่อย
           </button>
@@ -229,8 +255,7 @@ export default function List() {
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressEdit(item.labId);
-            }}
-          >
+            }}>
             <FiEdit className="w-4 h-4" />
             แก้ไข
           </button>
@@ -238,8 +263,7 @@ export default function List() {
             className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressDelete(item.labId);
-            }}
-          >
+            }}>
             <FiTrash2 className="w-4 h-4" />
             ลบ
           </button>
@@ -282,13 +306,12 @@ export default function List() {
     }
 
     return result;
-  }, [data, search, sort]);
+  }, [data, search, sort, labgroupName, userIdlogin, userlogin]);
 
   return (
     <Content
       breadcrumb={breadcrumb}
-      title="แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
-    >
+      title="แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between">
           <div>
@@ -303,8 +326,7 @@ export default function List() {
                   setSchId(e.target.value);
                   router.push(`/assign-course?schId=${e.target.value}`);
                 }}
-                className="block bg-white px-4 py-2 border rounded-md dark:bg-gray-800"
-              >
+                className="block bg-white px-4 py-2 border rounded-md dark:bg-gray-800">
                 <option value="" disabled>
                   กรุณาเลือก
                 </option>
@@ -318,8 +340,7 @@ export default function List() {
 
             <button
               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={_onPressAdd}
-            >
+              onClick={_onPressAdd}>
               <FiPlus className="w-4 h-4" />
               เพิ่มรายวิชา
             </button>

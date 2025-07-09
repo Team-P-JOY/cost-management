@@ -61,7 +61,7 @@ const navigation = [
       },
       {
         id: 33,
-        name: "ครุภัณฑ์",
+        name: "ครุภัณฑ์ห้องปฎิบัติการ",
         icon: FiBox,
         href: "/assetss?idType=1",
       },
@@ -76,6 +76,13 @@ const navigation = [
         name: "วัสดุสิ้นเปลือง",
         icon: FiBox,
         href: "/assetss?idType=3",
+      },
+      ,
+      {
+        id: 35,
+        name: "ครุภัณฑ์วิทยาศาสตร์",
+        icon: FiBox,
+        href: "/assetss?idType=4",
       },
     ],
   },

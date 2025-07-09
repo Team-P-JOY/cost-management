@@ -6,7 +6,17 @@ import {
   FiChevronsDown,
   FiHome,
   FiInfo,
+  FiChevronUp,
+  FiChevronDown,
 } from "react-icons/fi";
+import {
+  Armchair,
+  ChartBarIcon,
+  ChevronsRight,
+  PersonStanding,
+  User2,
+  X,
+} from "lucide-react";
 import Content from "@/components/Content";
 import ExportButton from "@/components/ExportButton";
 import Link from "next/link";
@@ -27,9 +37,20 @@ export default function Dashboard() {
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter(); // Get the router object
+    const [expandedItems, setExpandedItems] = useState(new Set()); // สำหรับจัดการการแสดง/ซ่อนรายวิชาย่อย
+  
 
   const redirectToPrepareLab = async () => {
     router.push("/prepare-labu");
+  };
+  const toggleExpanded = (labId) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(labId)) {
+      newExpanded.delete(labId);
+    } else {
+      newExpanded.add(labId);
+    }
+    setExpandedItems(newExpanded);
   };
 
   useEffect(() => {
@@ -99,7 +120,7 @@ export default function Dashboard() {
         `/api/assign-course?schId=${selectedSchId}&labgroupId=${selectedLg}`
       );
       const result = await response.json();
-     
+
       const filteredData = result.data.filter(
         (item) => item.personId == userIdlogin
       );
@@ -303,9 +324,39 @@ export default function Dashboard() {
                   content: "ชื่อรายวิชา",
                   render: (item) => (
                     <div className="flex flex-col">
-                      <p className="block">
-                        {item.coursecode} {item.coursename}
-                      </p>
+                      <div
+                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors"
+                        onClick={() => toggleExpanded(item.labId)}>
+                        <p className="block">
+                          {item.coursecode} {item.coursename}
+                        </p>
+                        {item.sub && item.sub.length > 0 && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            ({item.sub.length} รายวิชาย่อย)
+                          </span>
+                        )}
+                        {item.sub &&
+                          item.sub.length > 0 &&
+                          (expandedItems.has(item.labId) ? (
+                            <FiChevronUp className="w-4 h-4 text-gray-500" />
+                          ) : (
+                            <FiChevronDown className="w-4 h-4 text-gray-500" />
+                          ))}
+                      </div>
+                      {expandedItems.has(item.labId) &&
+                        item.sub &&
+                        item.sub.length > 0 && (
+                          <ul className="list-disc list-inside ml-4 mt-2">
+                            {item.sub.map((sub, iSub) => (
+                              <li
+                                key={iSub}
+                                className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                                <ChevronsRight className="w-4 h-4" />{" "}
+                                {sub.coursecode} {sub.coursename}{" "}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                     </div>
                   ),
                 },
@@ -322,14 +373,13 @@ export default function Dashboard() {
                 {
                   key: "section",
                   content: "รายละเอียดวิชา",
-                  width: "300",
+                  width: "150",
                   render: (item) => (
                     <div className="flex flex-col">
-                      <p className="block">
-                        จำนวนกลุ่มเรียน : {item.section} กลุ่ม
-                      </p>
-                      <p className="block opacity-70">
-                        จำนวนนักศึกษา : {item.enrollseat}/{item.totalseat} คน
+                      <p className="block">กลุ่มเรียน : {item.section}</p>
+                      <p className="block opacity-70 flex items-center gap-1 ">
+                        <User2 className="w-4 h-4" /> {item.enrollseat} |{" "}
+                        <Armchair className="w-4 h-4" /> {item.totalseat}
                       </p>
                     </div>
                   ),

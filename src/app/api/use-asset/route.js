@@ -96,14 +96,37 @@ export async function GET(req) {
     const schId = req.nextUrl.searchParams.get("schId");
     const labgroupId = req.nextUrl.searchParams.get("labgroupId");
 
+    console.log("API Parameters:", {
+      id,
+      labjobId,
+      courseId,
+      schId,
+      labgroupId,
+    });
+
     const users = await getUser();
     const labgroup = await getLabgroup();
 
     if (id) {
+      // Validate required parameters
+      if (!labjobId) {
+        return NextResponse.json(
+          { success: false, message: "Missing labjobId parameter" },
+          { status: 400 }
+        );
+      }
+
       const data = await executeQuery(
         `SELECT * FROM CST_LABCOURSE WHERE LAB_ID = :id`,
         { id }
       );
+
+      if (!data || data.length === 0) {
+        return NextResponse.json(
+          { success: false, message: "Lab course not found" },
+          { status: 404 }
+        );
+      }
 
       const labasset = await executeQuery(
         `SELECT ASSET.LABASSET_ID,ASSET.ASSET_ID, ASSET.AMOUNT, ASSET.ASSET_REMARK, 
@@ -125,6 +148,7 @@ export async function GET(req) {
         WHERE ASSET.LAB_ID = :id`,
         { id }
       );
+
       const uselabasset = await executeQuery(
         `SELECT ASSET.LABJOB_ASSET_ID,ASSET.ASSET_ID,
          ASSET.AMOUNT_USED, 
@@ -337,8 +361,16 @@ export async function GET(req) {
       });
     }
   } catch (error) {
+    console.error("❌ Database Error in use-asset GET:", error);
     return NextResponse.json(
-      { success: false, message: "Database Error", error },
+      {
+        success: false,
+        message: "Database Error",
+        error: {
+          message: error?.message,
+          stack: error?.stack,
+        },
+      },
       { status: 500 }
     );
   }
