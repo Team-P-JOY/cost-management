@@ -50,6 +50,7 @@ export default function Detail() {
     type1: [],
     type2: [],
     type3: [],
+    type4: [],
   });
 
   const [courseUser, setCourseUser] = useState([]);
@@ -71,6 +72,7 @@ export default function Detail() {
     { id: "tab1", label: "ครุภัณฑ์ห้องปฎิบัติการ" },
     { id: "tab2", label: "วัสดุไม่สิ้นเปลือง" },
     { id: "tab3", label: "วัสดุสิ้นเปลือง" },
+    { id: "tab4", label: "ครุภัณฑ์วิทยาศาสตร์" },
   ];
 
   const validationSchema = Yup.object({
@@ -252,6 +254,21 @@ export default function Detail() {
             type3: [...(prevLabasset.type3 || []), values],
           }));
         }
+      } else if (values.type === 4) {
+        if (values.labassetId) {
+          setLabasset((prevLabasset) => ({
+            ...prevLabasset,
+            type4: prevLabasset.type4.map((item) =>
+              item.labassetId === values.labassetId ? values : item
+            ),
+          }));
+        } else {
+          values.labassetId = "";
+          setLabasset((prevLabasset) => ({
+            ...prevLabasset,
+            type4: [...(prevLabasset.type4 || []), values],
+          }));
+        }
       }
       await saveLabAsset(values);
       setInventFormModal(false);
@@ -317,6 +334,7 @@ export default function Detail() {
             type1: data.labasset?.filter((item) => item.type === 1) || [],
             type2: data.labasset?.filter((item) => item.type === 2) || [],
             type3: data.labasset?.filter((item) => item.type === 3) || [],
+            type4: data.labasset?.filter((item) => item.type === 4) || [],
           });
 
           setCourseUser(data.courseUser);
@@ -394,6 +412,8 @@ export default function Detail() {
       asset = labasset.type2.find((item) => item.labassetId === id);
     } else if (type === 3) {
       asset = labasset.type3.find((item) => item.labassetId === id);
+    } else if (type === 4) {
+      asset = labasset.type4.find((item) => item.labassetId === id);
     }
 
     inventForm.setValues({
@@ -423,12 +443,17 @@ export default function Detail() {
       } else if (type === 2) {
         setLabasset((prevLabasset) => ({
           ...prevLabasset,
-          type2: prevLabasset.type1.filter((item) => item.labassetId !== id),
+          type2: prevLabasset.type2.filter((item) => item.labassetId !== id),
         }));
       } else if (type === 3) {
         setLabasset((prevLabasset) => ({
           ...prevLabasset,
-          type3: prevLabasset.type1.filter((item) => item.labassetId !== id),
+          type3: prevLabasset.type3.filter((item) => item.labassetId !== id),
+        }));
+      } else if (type === 4) {
+        setLabasset((prevLabasset) => ({
+          ...prevLabasset,
+          type4: prevLabasset.type4.filter((item) => item.labassetId !== id),
         }));
       }
     }
@@ -724,6 +749,116 @@ export default function Detail() {
                         type: 3,
                         name: "วัสดุสิ้นเปลือง",
                         asset: labasset.type3,
+                      },
+                    ].map((type) => (
+                      <div className="sm:col-span-12" key={type.type}>
+                        <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+                          <div className="pb-4 border-gray-200 flex justify-between items-center">
+                            <div className="font-xl font-semibold inline">
+                              <span className="pe-2">{type.name}</span>
+                              <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
+                                {type.asset.length} รายการ
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => _onPressAddInvent(type.type)}>
+                              <FiPlus className="w-4 h-4" />
+                              เพิ่ม
+                            </button>
+                          </div>
+                          <TableList
+                            exports={false}
+                            meta={[
+                              {
+                                content: "รายการ",
+                                key: "assetNameTh",
+                                render: (item) => (
+                                  <div>
+                                    <div> {item.assetNameTh}</div>
+                                    <div className="flex gap-2 text-gray-500 dark:text-gray-400">
+                                      <div className="text-sm">
+                                        ยี่ห้อ : {item.brandName || "-"}
+                                      </div>
+                                      <div className="text-sm">
+                                        ขนาด : {item.amountUnit || "-"}
+                                      </div>
+                                      <div className="text-sm">
+                                        ห้องปฎิบัติการ :{" "}
+                                        {item.invgroupName || "-"}
+                                      </div>
+                                    </div>
+                                    <div className="text-sm">
+                                      หมายเหตุ : {item.assetRemark || "-"}
+                                    </div>
+                                  </div>
+                                ),
+                              },
+                              {
+                                content: "จำนวน",
+                                width: 100,
+                                className: "text-center",
+                                key: "amount",
+                                render: (item) => (
+                                  <div>{item.amount.toLocaleString()}</div>
+                                ),
+                              },
+                              {
+                                content: "หน่วย",
+                                width: 100,
+                                key: "unitName",
+                              },
+                              {
+                                key: "assetId",
+                                content: "Action",
+                                width: "100",
+                                sort: false,
+                                render: (item) => (
+                                  <div className="flex gap-1">
+                                    <button
+                                      type="button"
+                                      className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      onClick={() => {
+                                        return _onPressEditInvent(
+                                          item.labassetId,
+                                          type.type
+                                        );
+                                      }}>
+                                      <FiEdit className="w-4 h-4" />
+                                      แก้ไข
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      onClick={() => {
+                                        return _onPressDeleteInvent(
+                                          item.labassetId,
+                                          type.type
+                                        );
+                                      }}>
+                                      <FiTrash2 className="w-4 h-4" />
+                                      ลบ
+                                    </button>
+                                  </div>
+                                ),
+                              },
+                            ]}
+                            data={type.asset}
+                            loading={loading}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {activeTab === "tab4" && (
+                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                    {[
+                      {
+                        type: 4,
+                        name: "ครุภัณฑ์วิทยาศาสตร์",
+                        asset: labasset.type4,
                       },
                     ].map((type) => (
                       <div className="sm:col-span-12" key={type.type}>

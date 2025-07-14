@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
+import AutocompleteSelect2 from "@/components/AutocompleteSelect2";
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -193,48 +194,42 @@ export default function Detail() {
         <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
           <div className="sm:col-span-6">
             <label className={className.label}>สำนักวิชา</label>
-            <select
+            <AutocompleteSelect2
+              name="facultyId"
               value={facultyId}
-              onChange={(e) => {
-                setFacultyId(e.target.value);
+              onSelect={(name, item) => {
+                setFacultyId(item.value);
                 router.push(
-                  `/assign-course/create?facultyId=${e.target.value}&schId=${schId}`
+                  `/assign-course/create?facultyId=${item.value}&schId=${schId}`
                 );
               }}
+              options={data.faculty.map(item => ({
+                value: item.facultyid,
+                label: item.facultyname
+              }))}
+              placeholder="เลือกสำนักวิชา"
               className={className.select}
-            >
-              <option value="" disabled>
-                เลือกสำนักวิชา
-              </option>
-              {data.faculty.map((item) => (
-                <option key={item.facultyid} value={item.facultyid}>
-                  {item.facultyname}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div className="sm:col-span-6">
             <label className={className.label}>ภาคการศึกษา</label>
-            <select
+            <AutocompleteSelect2
+              name="schId"
               value={schId}
-              onChange={(e) => {
-                setSchId(e.target.value);
+              onSelect={(name, item) => {
+                setSchId(item.value);
                 router.push(
-                  `/assign-course/create?facultyId=${facultyId}&schId=${e.target.value}`
+                  `/assign-course/create?facultyId=${facultyId}&schId=${item.value}`
                 );
               }}
+              options={data.term.map(item => ({
+                value: item.schId,
+                label: `${item.semester}/${item.acadyear}`
+              }))}
+              placeholder="เลือกภาคการศึกษา"
               className={className.select}
-            >
-              <option value="" disabled>
-                เลือกภาคการศึกษา
-              </option>
-              {data.term.map((item) => (
-                <option key={item.schId} value={item.schId}>
-                   {item.semester}/{item.acadyear}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div className="sm:col-span-12">
             <div className="flex justify-end space-x-4">
