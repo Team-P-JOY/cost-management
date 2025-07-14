@@ -28,6 +28,17 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(theme);
+
+    // Check if user was redirected due to JWT error
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("error") === "JWTSessionError") {
+      setNotification({
+        type: "warning",
+        message: "Your session has expired. Please log in again.",
+      });
+      // Clean up the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, [theme]);
 
   const handleLogin = async (e) => {
@@ -41,6 +52,7 @@ export default function LoginPage() {
       redirect: false,
     });
 
+    console.log("Login response:", res);
     setLoading(false);
     if (res.ok) {
       router.push("/");

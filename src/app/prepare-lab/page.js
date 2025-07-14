@@ -4,9 +4,18 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import Content from "@/components/Content";
-import { FiEdit } from "react-icons/fi";
+import { FiEdit, FiSettings, FiBookOpen, FiLayers } from "react-icons/fi";
 import TableList from "@/components/TableList";
 import { useSession } from "next-auth/react";
+import {
+  Armchair,
+  User2,
+  GraduationCap,
+  Clock,
+  Building,
+  Users,
+  BookOpen,
+} from "lucide-react";
 
 export default function Page() {
   const router = useRouter(); // Get the router object
@@ -64,7 +73,10 @@ export default function Page() {
           let labData = [];
           if (userlogin === "แอดมิน") {
             labData = response.data.data;
-          } else if (userlogin === "หัวหน้าฝ่าย") {
+          } else if (
+            userlogin === "หัวหน้าฝ่าย" ||
+            userlogin === "ผู้ประสานงานรายวิชา"
+          ) {
             labData = response.data.data.filter((item) => {
               return (
                 item.userCreated == userIdlogin ||
@@ -89,7 +101,7 @@ export default function Page() {
 
     fetchData();
   }, [schId]);
-  const hl = "จัดการ";
+
   const meta = [
     {
       key: "courseunicode",
@@ -98,70 +110,105 @@ export default function Page() {
       width: "150",
       render: (item) => {
         return (
-          <>
-            <div className="item-center">
-              <span>
+          <div className="space-y-1">
+            <div className="flex items-center justify-center gap-2">
+              <BookOpen className="w-4 h-4 text-blue-600" />
+              <span className="font-semibold text-blue-900 dark:text-blue-300">
                 {item.courseunicode}
-                {/* {item.personId} */}
               </span>
             </div>
-            <div className="item-center">
-              <span>{item.courseunit}</span>
+            <div className="flex items-center justify-center">
+              <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+                {item.courseunit} หน่วยกิต
+              </span>
             </div>
-          </>
+          </div>
         );
       },
     },
-    ,
     {
       key: "coursename",
       content: "รายวิชา",
       render: (item) => {
         return (
-          <>
-            <div className="item-center">
-              <span> {item.coursename}</span>
+          <div className="space-y-2">
+            <div className="font-medium text-gray-900 dark:text-gray-100">
+              <span className="text-sm">{item.coursename}</span>
             </div>
-            <div className="item-center">
+            <div className="text-xs text-gray-500 dark:text-gray-400 italic">
               <span>({item.coursenameeng})</span>
             </div>
-          </>
+          </div>
         );
       },
     },
     {
       key: "enrollseat",
-      content: "เปิดลง | นักศึกษา",
+      content: "นักศึกษา | ที่นั่ง",
       width: "150",
       className: "text-center",
       render: (item) => {
         return (
-          <span className="item-center">
-            {item.totalseat} | {item.enrollseat}
-          </span>
+          <div className="flex items-center justify-center gap-4">
+            <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <Users className="w-4 h-4" />
+              <span className="font-semibold">{item.enrollseat}</span>
+            </div>
+            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+              <Armchair className="w-4 h-4" />
+              <span className="font-semibold">{item.totalseat}</span>
+            </div>
+          </div>
         );
       },
     },
     {
       key: "labroom",
-      content: " จำนวนห้อง LAB ",
+      content: "ห้องปฏิบัติการ",
       width: "150",
       className: "text-center",
       render: (item) => {
-        return <span className="item-center">{item.labroom}</span>;
+        return (
+          <div className="flex items-center justify-center gap-2">
+            <Building className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <span className="font-semibold text-purple-900 dark:text-purple-300">
+              {item.labroom} ห้อง
+            </span>
+          </div>
+        );
       },
     },
     {
       key: "section",
-      content: " จำนวนกลุ่ม",
+      content: "จำนวนกลุ่ม",
       width: "120",
       className: "text-center",
+      render: (item) => {
+        return (
+          <div className="flex items-center justify-center gap-2">
+            <GraduationCap className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+            <span className="font-semibold text-orange-900 dark:text-orange-300">
+              {item.section} กลุ่ม
+            </span>
+          </div>
+        );
+      },
     },
     {
       key: "hour",
-      content: " จำนวนชม.ที่เรียนต่อสัปดาห์",
-      width: "200",
+      content: "ชั่วโมง/สัปดาห์",
+      width: "150",
       className: "text-center",
+      render: (item) => {
+        return (
+          <div className="flex items-center justify-center gap-2">
+            <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <span className="font-semibold text-indigo-900 dark:text-indigo-300">
+              {item.hour} ชม.
+            </span>
+          </div>
+        );
+      },
     },
   ];
 
@@ -172,8 +219,8 @@ export default function Page() {
   ) {
     meta.push({
       key: "labId",
-      content: hl,
-      width: "270",
+      content: "การจัดการ",
+      width: "320",
       className: "text-center",
       render: (item) => {
         const isOwner = String(item.personId) === String(userIdlogin);
@@ -183,18 +230,28 @@ export default function Page() {
         const isLabChief = userlogin === "หัวหน้าบทปฏิบัติการ";
 
         return (
-          <div className="cursor-pointer items-center justify-center flex gap-1">
+          <div className="flex items-center justify-center gap-2">
             {(isAdmin || isCoordinator || isDeptHead) && (
               <>
                 <button
-                  className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200"
-                  onClick={() => _onPressAdd(item.labId)}>
-                  กำหนดปฏิบัติการ
+                  className="group flex items-center gap-1 px-2 py-2 text-white text-xs bg-gradient-to-r from-fuchsia-500 to-fuchsia-600 hover:from-fuchsia-600 hover:to-fuchsia-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                  onClick={() => _onPressAdd(item.labId)}
+                  title="กำหนดปฏิบัติการ">
+                  <FiBookOpen className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                  <span className="hidden xl:inline text-xs">
+                    กำหนดปฏิบัติการ
+                  </span>
+                  <span className="xl:hidden text-xs">ปฏิบัติการ</span>
                 </button>
                 <button
-                  className="cursor-pointer p-2 text-white text-sm bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-200"
-                  onClick={() => _onPressAddasset(item.labId)}>
-                  แผนการใช้ทรัพยากร
+                  className="group flex items-center gap-1 px-2 py-2 text-white text-xs bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                  onClick={() => _onPressAddasset(item.labId)}
+                  title="แผนการใช้ทรัพยากร">
+                  <FiLayers className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                  <span className="hidden xl:inline text-xs">
+                    แผนการใช้ทรัพยากร
+                  </span>
+                  <span className="xl:hidden text-xs">ทรัพยากร</span>
                 </button>
               </>
             )}
@@ -214,22 +271,35 @@ export default function Page() {
   }
   return (
     <Content breadcrumb={breadcrumb} title={title}>
-      <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-          <div>
-            <h3 className="font-semibold text-lg">
-              รายการรายวิชาเตรียมปฏิบัติการ
-            </h3>
-          </div>
+      <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700">
+        {/* Header Section */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-t-2xl">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-xl">
+                <FiBookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-xl text-gray-900 dark:text-gray-100">
+                  รายการรายวิชาเตรียมปฏิบัติการ
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  จัดการและติดตามความคืบหน้าการเตรียมปฏิบัติการ
+                </p>
+              </div>
+            </div>
 
-          <div className=" gap-1  justify-end">
-            <div className="flex gap-2 justify-end items-center">
-              <label className="block text-base font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300 w-full">
-                ปีการศึกษา
-              </label>
+            {/* Academic Year Selector */}
+            <div className="flex items-center gap-3 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-600">
+              <div className="flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  ปีการศึกษา
+                </label>
+              </div>
               <select
                 name="schId"
-                className="border border-gray-500 p-2 rounded-lg w-full"
+                className="border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg min-w-[180px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 value={schId}
                 onChange={(e) => setSchId(e.target.value)}>
                 <option value="" disabled>
@@ -244,11 +314,32 @@ export default function Page() {
             </div>
           </div>
         </div>
-        <div className="p-4 overflow-auto">
+
+        {/* Content Section */}
+        <div className="p-6">
           {error ? (
-            <p className="text-center text-red-500">{error}</p>
+            <div className="flex items-center justify-center p-8">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FiSettings className="w-8 h-8 text-red-600 dark:text-red-400" />
+                </div>
+                <p className="text-red-600 dark:text-red-400 font-medium">
+                  {error}
+                </p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+                  กรุณาลองใหม่อีกครั้งหรือติดต่อผู้ดูแลระบบ
+                </p>
+              </div>
+            </div>
           ) : (
-            <TableList meta={meta} data={lab} loading={loading} />
+            <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+              <TableList
+                meta={meta}
+                data={lab}
+                loading={loading}
+                className="rounded-xl"
+              />
+            </div>
           )}
         </div>
       </div>

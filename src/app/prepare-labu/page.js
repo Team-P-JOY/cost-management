@@ -4,7 +4,25 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import Content from "@/components/Content";
-import { FiEdit } from "react-icons/fi";
+import {
+  FiEdit,
+  FiUsers,
+  FiBookOpen,
+  FiCalendar,
+  FiSettings,
+} from "react-icons/fi";
+import {
+  BookOpen,
+  Users,
+  Calendar,
+  Clock,
+  Building,
+  GraduationCap,
+  FileText,
+  Settings,
+  Activity,
+  Armchair,
+} from "lucide-react";
 import TableList from "@/components/TableList";
 import { useSession } from "next-auth/react";
 
@@ -77,7 +95,7 @@ export default function Page() {
     }
 
     fetchData();
-  }, [schId]);
+  }, [schId, userIdlogin, userlogin]);
 
   const meta = [
     {
@@ -87,70 +105,110 @@ export default function Page() {
       width: "150",
       render: (item) => {
         return (
-          <>
-            <div className="item-center">
-              <span>
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
                 {item.courseunicode}
-                {/* {item.personId} */}
               </span>
             </div>
-            <div className="item-center">
-              <span>{item.courseunit}</span>
-            </div>
-          </>
+            <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+              {item.courseunit} หน่วยกิต
+            </span>
+          </div>
         );
       },
     },
-    ,
     {
       key: "coursename",
       content: "รายวิชา",
       render: (item) => {
         return (
-          <>
-            <div className="item-center">
-              <span> {item.coursename}</span>
+          <div className="space-y-1">
+            <div className="font-medium text-gray-900 dark:text-gray-100">
+              {item.coursename}
             </div>
-            <div className="item-center">
-              <span>({item.coursenameeng})</span>
+            <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+              ({item.coursenameeng})
             </div>
-          </>
+          </div>
         );
       },
     },
     {
       key: "enrollseat",
-      content: "เปิดลง | นักศึกษา",
+      content: "นักศึกษา | ที่นั่ง",
+
       width: "150",
       className: "text-center",
       render: (item) => {
         return (
-          <span className="item-center">
-            {item.totalseat} | {item.enrollseat}
-          </span>
+          <div className="flex items-center justify-center gap-4">
+            <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <Users className="w-4 h-4" />
+              <span className="font-semibold">{item.enrollseat}</span>
+            </div>
+            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+              <Armchair className="w-4 h-4" />
+              <span className="font-semibold">{item.totalseat}</span>
+            </div>
+          </div>
         );
       },
     },
     {
       key: "labroom",
-      content: " จำนวนห้อง LAB ",
+      content: "จำนวนห้อง LAB",
       width: "150",
       className: "text-center",
       render: (item) => {
-        return <span className="item-center">{item.labroom}</span>;
+        return (
+          <div className="flex items-center justify-center gap-2">
+            <Building className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <span className="font-semibold text-gray-900 dark:text-gray-100">
+              {item.labroom}
+            </span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              ห้อง
+            </span>
+          </div>
+        );
       },
     },
     {
       key: "section",
-      content: " จำนวนกลุ่ม",
+      content: "จำนวนกลุ่ม",
       width: "120",
       className: "text-center",
+      render: (item) => {
+        return (
+          <div className="flex items-center justify-center gap-2">
+            <GraduationCap className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+            <span className="font-semibold text-gray-900 dark:text-gray-100">
+              {item.section}
+            </span>
+          </div>
+        );
+      },
     },
     {
       key: "hour",
-      content: " จำนวนชม.ที่เรียนต่อสัปดาห์",
+      content: "จำนวนชม.ต่อสัปดาห์",
       width: "200",
       className: "text-center",
+      render: (item) => {
+        return (
+          <div className="flex items-center justify-center gap-2">
+            <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <span className="font-semibold text-gray-900 dark:text-gray-100">
+              {item.hour}
+            </span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              ชม.
+            </span>
+          </div>
+        );
+      },
     },
   ];
 
@@ -163,12 +221,12 @@ export default function Page() {
       render: (item) => {
         const isOwner = String(item.personId) === String(userIdlogin);
 
-        // ถ้าเป็นเจ้าของ (isOwner === true)
         return (
-          <div className="cursor-pointer items-center justify-center flex gap-1">
+          <div className="flex items-center justify-center">
             <button
-              className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200"
+              className="flex items-center gap-2 px-4 py-2 text-white text-sm bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 rounded-lg transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
               onClick={() => _onPressAdd(item.labId)}>
+              <Settings className="w-4 h-4" />
               การใช้ทรัพยากรและอุปกรณ์ชำรุด
             </button>
           </div>
@@ -193,51 +251,71 @@ export default function Page() {
   }
   return (
     <Content breadcrumb={breadcrumb} title={title}>
-      <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-          <div>
-            <h3 className="font-semibold text-lg">
-              รายการรายวิชาเตรียมปฏิบัติการ
-            </h3>
-          </div>
+      <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700">
+        {/* Header Section */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-t-2xl">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            {/* Title Section */}
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-xl">
+                <Activity className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-xl text-gray-900 dark:text-gray-100">
+                  รายการรายวิชาเตรียมปฏิบัติการ
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  จัดการการใช้ทรัพยากรและอุปกรณ์ชำรุด
+                </p>
+              </div>
+            </div>
 
-          <div className=" gap-1  justify-end">
-            <div className="flex gap-2 justify-end items-center">
-              <label className="block text-base font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300 w-full">
-                ปีการศึกษา
-              </label>
-              <select
-                name="schId"
-                className="border border-gray-500 p-2 rounded-lg w-full"
-                value={schId}
-                onChange={(e) => setSchId(e.target.value)}>
-                <option value="" disabled>
-                  กรุณาเลือก
-                </option>
-                {schYears.map((item) => (
-                  <option key={item.schId} value={item.schId}>
-                    {item.semester} / {item.acadyear}
+            {/* Academic Year Selector */}
+            <div className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600 shadow-sm min-w-[280px]">
+              <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  ปีการศึกษา
+                </label>
+                <select
+                  name="schId"
+                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  value={schId}
+                  onChange={(e) => setSchId(e.target.value)}>
+                  <option value="" disabled>
+                    เลือกปีการศึกษา
                   </option>
-                ))}
-              </select>
+                  {schYears.map((item) => (
+                    <option key={item.schId} value={item.schId}>
+                      {item.semester} / {item.acadyear}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
-        <div className="p-4 overflow-auto">
+
+        {/* Content Section */}
+        <div className="p-6">
           {error ? (
-            <p className="text-center text-red-500">{error}</p>
+            <div className="flex items-center justify-center p-8">
+              <div className="text-center">
+                <div className="p-4 bg-red-100 dark:bg-red-900 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <FiSettings className="w-8 h-8 text-red-600 dark:text-red-400" />
+                </div>
+                <p className="text-red-600 dark:text-red-400 text-lg font-medium">
+                  {error}
+                </p>
+              </div>
+            </div>
           ) : (
-            <TableList meta={meta} data={lab} loading={loading} />
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden p-2">
+              <TableList meta={meta} data={lab} loading={loading} />
+            </div>
           )}
         </div>
       </div>
     </Content>
   );
 }
-const className = {
-  label:
-    "block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
-  input:
-    "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
-  select: "block px-4 py-2 border rounded-md dark:bg-gray-800",
-};

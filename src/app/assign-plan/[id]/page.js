@@ -355,10 +355,7 @@ export default function Detail() {
   };
 
   const _onPressDeleteInvent = async (id, type) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
 
     if (result.isConfirmed) {
       if (type === 1) {
@@ -432,7 +429,7 @@ export default function Detail() {
                       <i>สำนักวิชา</i> : {data.course?.coursename}
                     </div>
                     <div className="sm:col-span-8">
-                      <i>เทอมการศึกษา</i> : {data.class?.[0]?.semester}/
+                      <i>ภาคการศึกษา</i> : {data.class?.[0]?.semester}/
                       {data.class?.[0]?.acadyear}
                     </div>
                     <div className="sm:col-span-4">
@@ -590,7 +587,7 @@ export default function Detail() {
                     {[
                       {
                         type: 1,
-                        name: "ครุภัณฑ์",
+                        name: "ครุภัณฑ์ห้องปฎิบัติการ",
                         asset: labasset.type1,
                       },
                       {

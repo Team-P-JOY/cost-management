@@ -13,8 +13,6 @@ export async function GET(req) {
   // const schId = req.nextUrl.searchParams.get("schId");
   const userIdlogin = req.nextUrl.searchParams.get("userIdlogin");
   const userlogin = req.nextUrl.searchParams.get("userlogin");
-  console.log("userlogin", userlogin);
-  console.log("userIdlogin", userIdlogin);
   let sql;
   let sql2;
   let personId1 = "";

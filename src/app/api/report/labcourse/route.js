@@ -121,6 +121,17 @@ async function getFacultyEnroll(labId) {
     { labId }
   );
 }
+async function getSubLabcourse(labId) {
+  return await executeQuery(
+    `SELECT LAB.LAB_ID, LAB.COURSEID, COURSE.COURSEID,COURSE.FACULTYID, COURSE.COURSECODE, COURSE.COURSENAME, COURSE.DESCRIPTION1
+    FROM CST_LABCOURSE LAB
+    INNER JOIN PBL_AVSREGCOURSE_V COURSE ON COURSE.COURSEID = LAB.COURSEID
+    WHERE LAB.LAB_PARENT_ID = :labId AND LAB.FLAG_DEL = 0`,
+    {
+      labId,
+    }
+  );
+}
 async function getEquipment(labId) {
   return await executeQuery(
     `WITH ENROLL_SUM AS (
@@ -269,36 +280,67 @@ async function getFacproReport(labId) {
     { labId }
   );
 }
-async function getFacproReport2(labId) {
+
+async function getScientific(labId) {
   return await executeQuery(
-    `SELECT F.FACULTYID, F.FACULTYNAME,CST.pricePer_Term_INVTYPE1 , CST.pricePer_Term_INVTYPE2 ,  CST.pricePer_Term_INVTYPE3 , COUNT(E.STUDENTID) AS COUNTSTD  , 
-     P.PROGRAMGROUP  , P.PROGRAMNAME  ,  SUM(COUNT(E.STUDENTID)) OVER () as total_enroll ,
-    ROUND((CST.pricePer_Term_INVTYPE1 /SUM(COUNT(E.STUDENTID)) OVER ()   )* COUNT(E.STUDENTID ),2  )as  cost_perProgram1 , 
-    ROUND((CST.pricePer_Term_INVTYPE2 /SUM(COUNT(E.STUDENTID)) OVER ()   )* COUNT(E.STUDENTID ),2  )as  cost_perProgram2 , 
-    ROUND((CST.pricePer_Term_INVTYPE3   /SUM(COUNT(E.STUDENTID)) OVER ()   )* COUNT(E.STUDENTID ),2  )as  cost_perProgram3 
-    FROM CST_LABCOURSE  A  
-    INNER JOIN PBL_AVSREGENROLLSUMMARY_V  E ON  A.COURSEID=E.COURSEID  
-          AND A.ACADYEAR=E.ACADYEAR  AND A.SEMESTER = E.SEMESTER
-    INNER JOIN PBL_STUDENTMASTER_V S  ON E.STUDENTID=S.STUDENTID 
-    INNER JOIN PBL_FACULTY_V  F  ON S.FACULTYID=F.FACULTYID
-    INNER JOIN PBL_PROGRAM_V P  ON S.PROGRAMID=P.PROGRAMID
-    INNER JOIN  (
-    SELECT 
-        A.LAB_ID,
-        ROUND(SUM(CASE WHEN C.INVTYPE_ID = 1 THEN (B.HOUR_USED * (B.AMOUNT_USED * B.UNIT_PRICE) / (5 * 365 * 24)) ELSE 0 END), 2) AS pricePer_Term_INVTYPE1,
-        ROUND(SUM(CASE WHEN C.INVTYPE_ID = 2 THEN (B.HOUR_USED * (B.AMOUNT_USED * B.UNIT_PRICE) / (5 * 365 * 24)) ELSE 0 END), 2) AS pricePer_Term_INVTYPE2,
-        SUM(CASE WHEN C.INVTYPE_ID = 3 THEN B.AMOUNT_USED * B.UNIT_PRICE ELSE 0 END) AS pricePer_Term_INVTYPE3
-    FROM 
-        cst_labjob A
-    INNER JOIN 
-        cst_labjob_asset B ON A.LABJOB_ID = B.LABJOB_ID
-    INNER JOIN 
-        cst_invasset C ON B.ASSET_ID = C.ASSET_ID
-    LEFT JOIN CST_LABCOURSE J  ON A.LAB_ID = J.LAB_ID
-    WHERE 
-        (A.LAB_ID = :labId OR J.LAB_PARENT_ID = :labId ) AND A.FLAG_DEL = 0 AND B.FLAG_DEL = 0
-    GROUP BY   A.LAB_ID) CST   on  A.LAB_ID=CST.LAB_ID
-    GROUP BY   F.FACULTYID, F.FACULTYNAME,P.PROGRAMGROUP, P.PROGRAMNAME   , CST.LAB_ID , CST.pricePer_Term_INVTYPE1 , CST.pricePer_Term_INVTYPE2 , CST.pricePer_Term_INVTYPE3 `,
+    `WITH ENROLL_SUM AS (
+  SELECT COURSEID, SEMESTER, ACADYEAR, SUM(ENROLLSEAT) AS ENROLLSEAT
+  FROM PBL_AVSREGCLASS_V  
+  GROUP BY COURSEID, SEMESTER, ACADYEAR
+)
+SELECT 
+  LJ.LAB_ID,
+  CAS.ASSET_ID,
+  CAS.ASSET_NAME_TH,
+  CAS.ASSET_NAME_ENG,
+  CAS.PACK_PRICE,
+  CAS.AMOUNT_UNIT,
+  LB.COURSEID,
+  MAX(LB.SEMESTER) AS SEMESTER,
+  MAX(LB.ACADYEAR) AS ACADYEAR,
+  MAX(CAS.INVTYPE_ID) AS INVTYPE_ID,
+  SUM(LJA.AMOUNT_USED) AS AMOUNT_USED,
+  MAX(LJA.UNIT_PRICE) AS UNIT_PRICE,
+  SUM(LJA.AMOUNT_USED * LJA.UNIT_PRICE) AS ITEM_TOTAL,
+  ROUND(SUM(LJA.AMOUNT_USED * LJA.UNIT_PRICE) / (5 * 365 * 24), 2) AS COST_PER_HOUR_5Y,
+  ROUND(SUM(LJA.AMOUNT_USED * LJA.UNIT_PRICE) / (5 * 365 * 24) * MAX(LJA.HOUR_USED), 2) AS Price_semester,
+  ES.ENROLLSEAT,
+  MAX(LJA.HOUR_USED) AS HOUR_USED,
+  ROUND(SUM(LJA.AMOUNT_USED * LJA.UNIT_PRICE) / (5 * 365 * 24) * MAX(LJA.HOUR_USED) / ES.ENROLLSEAT, 2) AS COST_STD
+FROM CST_LABJOB_ASSET LJA
+INNER JOIN CST_INVASSET CAS ON CAS.ASSET_ID = LJA.ASSET_ID
+INNER JOIN CST_LABJOB LJ ON LJA.LABJOB_ID = LJ.LABJOB_ID
+INNER JOIN CST_LABCOURSE LB ON LJ.LAB_ID = LB.LAB_ID
+LEFT JOIN ENROLL_SUM ES ON ES.COURSEID = LB.COURSEID
+                        AND ES.SEMESTER = LB.SEMESTER
+                        AND ES.ACADYEAR = LB.ACADYEAR
+WHERE  LB.LAB_ID = :labId  
+  AND CAS.INVTYPE_ID = 4
+GROUP BY LJ.LAB_ID, CAS.ASSET_ID, CAS.ASSET_NAME_TH, LB.HOUR, ES.ENROLLSEAT,LB.COURSEID ,CAS.PACK_PRICE,CAS.AMOUNT_UNIT,CAS.ASSET_NAME_ENG
+ORDER BY LJ.LAB_ID, ITEM_TOTAL DESC `,
+    { labId }
+  );
+}
+async function getBroken(labId) {
+  return await executeQuery(
+    `SELECT 
+  LJ.LAB_ID,
+  LJA.ASSET_BROKEN_ID,
+   LJA.BROKEN_AMOUNT,
+  CAS.ASSET_ID,
+  CAS.ASSET_NAME_TH,
+  CAS.ASSET_NAME_ENG,
+  CAS.PACK_PRICE,
+  CAS.UNIT_PRICE,
+  CAS.AMOUNT_UNIT,
+  LB.COURSEID  
+FROM CST_ASSET_BROKEN LJA
+JOIN CST_INVASSET CAS ON CAS.ASSET_ID = LJA.ASSET_ID
+JOIN CST_LABJOB LJ ON LJA.LABJOB_ID = LJ.LABJOB_ID
+JOIN CST_LABCOURSE LB ON LJ.LAB_ID = LB.LAB_ID
+WHERE LJ.LAB_ID = :labId
+AND LJA.FLAG_DEL = 0
+ORDER BY LJA.ASSET_BROKEN_ID DESC `,
     { labId }
   );
 }
@@ -318,7 +360,6 @@ export async function GET(req) {
       LAB.COURSEID, 
       LAB.LABGROUP_ID,
       LAB.PERSON_ID,
-
       COURSE.COURSECODE AS COURSECODE, 
       COURSE.COURSENAME AS COURSENAME,
       COURSE.COURSENAMEENG AS COURSENAMEENG,
@@ -344,6 +385,9 @@ export async function GET(req) {
       WHERE LAB.LAB_ID = :id`,
       { id }
     );
+    for (let index = 0; index < data.length; index++) {
+      data[index].sub = await getSubLabcourse(data[index].labId);
+    }
     return NextResponse.json({
       success: true,
       data: data,
@@ -359,7 +403,8 @@ export async function GET(req) {
       supplies: await getSupplies(id),
       durableitems: await getDurableitems(id),
       facproReport: await getFacproReport(id),
-      facproReport2: await getFacproReport2(id),
+      scientific: await getScientific(id),
+      broken: await getBroken(id),
     });
   } catch (error) {
     return NextResponse.json(

@@ -18,7 +18,7 @@ export const confirmDialog = async (title, text) => {
     showCancelButton: true,
     confirmButtonColor: "#3085d6",
     cancelButtonColor: "#d33",
-    confirmButtonText: "ใช่, ฉันยืนยัน!",
+    confirmButtonText: "ยืนยัน",
     cancelButtonText: "ยกเลิก",
     background: theme === "dark" ? "#1f2937" : "",
     color: theme === "dark" ? "#f9fafb" : "",

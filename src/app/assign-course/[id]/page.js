@@ -3,7 +3,17 @@
 import { use, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
-import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
+import {
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiCheckCircle,
+  FiUser,
+  FiBook,
+  FiClock,
+  FiHome,
+  FiUsers,
+} from "react-icons/fi";
 import { useSession } from "next-auth/react";
 import {
   Dialog,
@@ -18,6 +28,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import TableList from "@/components/TableList";
+import UserAutocomplete from "@/components/UserAutocomplete";
 import { set } from "react-hook-form";
 
 const roleList = [
@@ -93,6 +104,7 @@ export default function Detail() {
       labroom: "",
       hour: "",
       // labgroupNum: "",
+      lab_parent_id: "",
       personId: "",
     },
     validationSchema: validationSchema,
@@ -465,10 +477,7 @@ export default function Detail() {
 
   const _onPressDeleteUser = async (labcourseUserId) => {
     console.log("labcourseUserId", labcourseUserId);
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
     if (result.isConfirmed) {
       const response = await axios.delete(
         `/api/assign-course/course-user?id=${labcourseUserId}&labId=${id}`
@@ -506,10 +515,7 @@ export default function Detail() {
   };
 
   const _onPressDeleteInvent = async (id, type) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
 
     if (result.isConfirmed) {
       if (type === 1) {
@@ -545,167 +551,186 @@ export default function Detail() {
     <Content
       breadcrumb={breadcrumb}
       title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
-      <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-300 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h3 className="font-semibold">
-            {isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล"} : {data.course?.coursecode}{" "}
-            {data.course?.coursename}
-          </h3>
+      <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <FiBook className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold">
+                {isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล"}
+              </h3>
+              {!isNew && data.course && (
+                <p className="text-blue-100 text-sm mt-1">
+                  {data.course.coursecode} {data.course.coursename}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
         {loading ? (
-          <div className="p-6 text-center text-gray-500 dark:text-gray-400">
-            กำลังโหลดข้อมูล...
+          <div className="p-12 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4 animate-pulse">
+              <FiBook className="w-8 h-8 text-blue-600" />
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">
+              กำลังโหลดข้อมูล...
+            </p>
           </div>
         ) : (
-          <form onSubmit={formik.handleSubmit}>
-            <div className="w-full">
-              <div className="flex px-4 mt-2">
-                {tabs.map((tab) => (
-                  <button
-                    type="button"
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 flex justify-center font-semibold items-center space-x-2 p-4 transition text-lg border-blue-600 dark:border-blue-300 border-2 ${
-                      activeTab === tab.id
-                        ? "text-blue-600 border-b-0 rounded-t-lg dark:text-blue-300"
-                        : "text-gray-500 border-x-0 border-t-0 dark:text-white"
-                    }`}>
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </div>
+          <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+            <form onSubmit={formik.handleSubmit}>
+              <div className="w-full">
+                <div className="flex bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                  {tabs.map((tab) => (
+                    <button
+                      type="button"
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex-1 flex justify-center items-center gap-2 px-6 py-4 font-medium text-sm transition-all duration-200 border-b-2 ${
+                        activeTab === tab.id
+                          ? "text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                          : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300"
+                      }`}>
+                      {tab.id === "tab1" && <FiBook className="w-4 h-4" />}
+                      {tab.id === "tab2" && <FiUsers className="w-4 h-4" />}
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
 
-              <div>
-                {activeTab === "tab1" && (
-                  <>
-                    <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                      <div className="sm:col-span-12">
-                        <h3 className="font-xl font-semibold">
-                          {data.course?.coursecode} {data.course?.coursename}
-                        </h3>
-                      </div>
-                      <div className="sm:col-span-4">
-                        <i>สำนักวิชา</i> : {data.course?.facultyname}
-                      </div>
-                      <div className="sm:col-span-8">
-                        <i>เทอมการศึกษา</i> : {data.class?.[0]?.semester}/
-                        {data.class?.[0]?.acadyear}
-                      </div>
-                      <div className="sm:col-span-4">
-                        <i>จำนวนกลุ่ม</i> : {data.class?.length} กลุ่ม
-                      </div>
-                      <div className="sm:col-span-4">
-                        <i>จำนวนนักศึกษา</i> :{" "}
-                        {data.class?.reduce(
-                          (total, item) => total + item.totalseat,
-                          0
-                        )}{" "}
-                        คน
-                      </div>
-                      <div className="sm:col-span-12">
-                        <i>รายละเอียด</i> : {data.course?.description1}
-                      </div>
+                <div>
+                  {activeTab === "tab1" && (
+                    <>
+                      <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                        <div className="sm:col-span-12">
+                          <h3 className="font-xl font-semibold">
+                            {data.course?.coursecode} {data.course?.coursename}
+                          </h3>
+                        </div>
+                        <div className="sm:col-span-4">
+                          <i>สำนักวิชา</i> : {data.course?.facultyname}
+                        </div>
+                        <div className="sm:col-span-8">
+                          <i>ภาคการศึกษา</i> : {data.class?.[0]?.semester}/
+                          {data.class?.[0]?.acadyear}
+                        </div>
+                        <div className="sm:col-span-4">
+                          <i>จำนวนกลุ่ม</i> : {data.class?.length} กลุ่ม
+                        </div>
+                        <div className="sm:col-span-4">
+                          <i>จำนวนนักศึกษา</i> :{" "}
+                          {data.class?.reduce(
+                            (total, item) => total + item.totalseat,
+                            0
+                          )}{" "}
+                          คน
+                        </div>
+                        <div className="sm:col-span-12">
+                          <i>รายละเอียด</i> : {data.course?.description1}
+                        </div>
 
-                      <div className="sm:col-span-12">
-                        <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-                          <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                            <div className="sm:col-span-6">
-                              <label className={className.label}>
-                                กลุ่มห้องปฎิบัติการ
-                              </label>
-                              <select
-                                name="labgroupId"
-                                value={formik.values.labgroupId || ""}
-                                onChange={(event) => {
-                                  _handleChangeLabgroup(event);
-                                  formik.handleChange(event);
-                                }}
-                                className={`${className.select} ${
-                                  formik.touched.labgroupId &&
-                                  formik.errors.labgroupId
-                                    ? "border-red-500"
-                                    : ""
-                                }`}>
-                                <option value="" disabled>
-                                  เลือกกลุ่มห้องปฎิบัติการ
-                                </option>
-                                {data.labgroup.map((labgroup) => (
-                                  <option
-                                    key={labgroup.labgroupId}
-                                    value={labgroup.labgroupId}>
-                                    {labgroup.labgroupName}
+                        <div className="sm:col-span-12">
+                          <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+                            <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                              <div className="sm:col-span-6">
+                                <label className={className.label}>
+                                  กลุ่มห้องปฎิบัติการ
+                                </label>
+                                <select
+                                  name="labgroupId"
+                                  value={formik.values.labgroupId || ""}
+                                  onChange={(event) => {
+                                    _handleChangeLabgroup(event);
+                                    formik.handleChange(event);
+                                  }}
+                                  className={`${className.select} ${
+                                    formik.touched.labgroupId &&
+                                    formik.errors.labgroupId
+                                      ? "border-red-500"
+                                      : ""
+                                  }`}>
+                                  <option value="" disabled>
+                                    เลือกกลุ่มห้องปฎิบัติการ
                                   </option>
-                                ))}
-                              </select>
-                              {formik.touched.labgroupId &&
-                                formik.errors.labgroupId && (
-                                  <p className="mt-1 text-sm text-red-500">
-                                    {formik.errors.labgroupId}
-                                  </p>
-                                )}
-                            </div>
-                            <div className="sm:col-span-6">
-                              <label className={className.label}>
-                                ผู้ประสานงานรายวิชา
-                              </label>
-                              <select
-                                name="personId"
-                                value={formik.values.personId || ""}
-                                onChange={formik.handleChange}
-                                className={`${className.select} ${
-                                  formik.touched.personId &&
-                                  formik.errors.personId
-                                    ? "border-red-500"
-                                    : ""
-                                }`}>
-                                <option value="" disabled>
-                                  {user.length > 0
-                                    ? "เลือกผู้รับผิดชอบหลัก"
-                                    : "- ไม่มีข้อมูล -"}
-                                </option>
-                                {user.map((user, index) => (
-                                  <option
-                                    key={user.personId + index}
-                                    value={user.personId}>
-                                    {user.fullname} ({user.roleName})
+                                  {data.labgroup.map((labgroup) => (
+                                    <option
+                                      key={labgroup.labgroupId}
+                                      value={labgroup.labgroupId}>
+                                      {labgroup.labgroupName}
+                                    </option>
+                                  ))}
+                                </select>
+                                {formik.touched.labgroupId &&
+                                  formik.errors.labgroupId && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                      {formik.errors.labgroupId}
+                                    </p>
+                                  )}
+                              </div>
+                              <div className="sm:col-span-6">
+                                <label className={className.label}>
+                                  ผู้ประสานงานรายวิชา
+                                </label>
+                                <select
+                                  name="personId"
+                                  value={formik.values.personId || ""}
+                                  onChange={formik.handleChange}
+                                  className={`${className.select} ${
+                                    formik.touched.personId &&
+                                    formik.errors.personId
+                                      ? "border-red-500"
+                                      : ""
+                                  }`}>
+                                  <option value="" disabled>
+                                    {user.length > 0
+                                      ? "เลือกผู้รับผิดชอบหลัก"
+                                      : "- ไม่มีข้อมูล -"}
                                   </option>
-                                ))}
-                              </select>
-                              {formik.touched.personId &&
-                                formik.errors.personId && (
-                                  <p className="mt-1 text-sm text-red-500">
-                                    {formik.errors.personId}
-                                  </p>
-                                )}
-                            </div>
+                                  {user.map((user, index) => (
+                                    <option
+                                      key={user.personId + index}
+                                      value={user.personId}>
+                                      {user.fullname} ({user.roleName})
+                                    </option>
+                                  ))}
+                                </select>
+                                {formik.touched.personId &&
+                                  formik.errors.personId && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                      {formik.errors.personId}
+                                    </p>
+                                  )}
+                              </div>
 
-                            <div className="sm:col-span-4">
-                              <label className={className.label}>
-                                จำนวนห้อง LAB ที่เปิดบริการ
-                              </label>
+                              <div className="sm:col-span-4">
+                                <label className={className.label}>
+                                  จำนวนห้อง LAB ที่เปิดบริการ
+                                </label>
 
-                              <input
-                                type="number"
-                                name="labroom"
-                                value={formik.values.labroom || ""}
-                                onChange={formik.handleChange}
-                                className={`${className.input} ${
-                                  formik.touched.labroom &&
-                                  formik.errors.labroom
-                                    ? "border-red-500"
-                                    : ""
-                                }`}
-                              />
-                              {formik.touched.labroom &&
-                                formik.errors.labroom && (
-                                  <p className="mt-1 text-sm text-red-500">
-                                    {formik.errors.labroom}
-                                  </p>
-                                )}
-                            </div>
+                                <input
+                                  type="number"
+                                  name="labroom"
+                                  value={formik.values.labroom || ""}
+                                  onChange={formik.handleChange}
+                                  className={`${className.input} ${
+                                    formik.touched.labroom &&
+                                    formik.errors.labroom
+                                      ? "border-red-500"
+                                      : ""
+                                  }`}
+                                />
+                                {formik.touched.labroom &&
+                                  formik.errors.labroom && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                      {formik.errors.labroom}
+                                    </p>
+                                  )}
+                              </div>
 
-                            {/* <div className="sm:col-span-4">
+                              {/* <div className="sm:col-span-4">
                               <label className={className.label}>
                                 จำนวนกลุ่มต่อห้อง
                               </label>
@@ -729,156 +754,61 @@ export default function Detail() {
                                 )}
                             </div> */}
 
-                            <div className="sm:col-span-4">
-                              <label className={className.label}>
-                                รวมจำนวนชั่วโมงเรียน/ภาคการศึกษา
-                              </label>
-                              <input
-                                type="number"
-                                name="hour"
-                                value={formik.values.hour || ""}
-                                onChange={formik.handleChange}
-                                className={`${className.input} ${
-                                  formik.touched.hour && formik.errors.hour
-                                    ? "border-red-500"
-                                    : ""
-                                }`}
-                              />
-                              {formik.touched.hour && formik.errors.hour && (
-                                <p className="mt-1 text-sm text-red-500">
-                                  {formik.errors.hour}
-                                </p>
-                              )}
+                              <div className="sm:col-span-4">
+                                <label className={className.label}>
+                                  รวมจำนวนชั่วโมงเรียน/ภาคการศึกษา
+                                </label>
+                                <input
+                                  type="number"
+                                  name="hour"
+                                  value={formik.values.hour || ""}
+                                  onChange={formik.handleChange}
+                                  className={`${className.input} ${
+                                    formik.touched.hour && formik.errors.hour
+                                      ? "border-red-500"
+                                      : ""
+                                  }`}
+                                />
+                                {formik.touched.hour && formik.errors.hour && (
+                                  <p className="mt-1 text-sm text-red-500">
+                                    {formik.errors.hour}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
-                      <button
-                        type="button"
-                        className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
-                        onClick={() => router.back()}>
-                        ยกเลิก
-                      </button>
-                      <button
-                        type="submit"
-                        className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
-                        บันทึกข้อมูล
-                      </button>
-                    </div>
-                  </>
-                )}
-                {activeTab === "tab2" && (
-                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                    <div className="sm:col-span-12">
-                      <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-                        <div className="pb-4 border-gray-200 flex justify-between items-center">
-                          <div className="font-xl font-semibold inline">
-                            <span className="pe-2">ผู้รับผิดชอบ</span>
-                            <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
-                              {courseUser.length} รายการ
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={() => _onPressAddUser()}>
-                            <FiPlus className="w-4 h-4" />
-                            เพิ่มใหม่
-                          </button>
-                        </div>
-                        <TableList
-                          exports={false}
-                          meta={[
-                            {
-                              content: "ผู้รับผิดชอบ",
-                              key: "fullname",
-                            },
-                            {
-                              content: "ตำแหน่งที่รับผิดชอบ",
-                              key: "roleId",
-                              render: (item) => (
-                                <div>
-                                  {
-                                    roleList.find(
-                                      (role) =>
-                                        parseInt(role.roleId) === item.roleId
-                                    )?.roleName
-                                  }
-                                </div>
-                              ),
-                            },
-                            {
-                              key: "labcourseUserId",
-                              content: "Action",
-                              width: "100",
-                              sort: false,
-
-                              render: (item) => (
-                                <div className="flex gap-1">
-                                  <button
-                                    type="button"
-                                    className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    onClick={() => {
-                                      _onPressEditUser(item.labcourseUserId);
-                                    }}>
-                                    <FiEdit className="w-4 h-4" />
-                                    แก้ไข
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    onClick={() =>
-                                      _onPressDeleteUser(item.labcourseUserId)
-                                    }>
-                                    <FiTrash2 className="w-4 h-4" />
-                                    ลบ
-                                  </button>
-                                </div>
-                              ),
-                            },
-                          ]}
-                          data={courseUser}
-                          loading={loading}
-                        />
+                      <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                          type="button"
+                          className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
+                          onClick={() => router.back()}>
+                          ยกเลิก
+                        </button>
+                        <button
+                          type="submit"
+                          className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+                          บันทึกข้อมูล
+                        </button>
                       </div>
-                    </div>
-                  </div>
-                )}
-                {/* {activeTab === "tab3" && (
-                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                    {[
-                      {
-                        type: 1,
-                        name: "ครุภัณฑ์",
-                        asset: labasset.type1,
-                      },
-                      {
-                        type: 2,
-                        name: "วัสดุไม่สิ้นเปลือง",
-                        asset: labasset.type2,
-                      },
-                      {
-                        type: 3,
-                        name: "วัสดุสิ้นเปลือง",
-                        asset: labasset.type3,
-                      },
-                    ].map((type) => (
-                      <div className="sm:col-span-12" key={type.type}>
+                    </>
+                  )}
+                  {activeTab === "tab2" && (
+                    <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                      <div className="sm:col-span-12">
                         <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
                           <div className="pb-4 border-gray-200 flex justify-between items-center">
                             <div className="font-xl font-semibold inline">
-                              <span className="pe-2">{type.name}</span>
+                              <span className="pe-2">ผู้รับผิดชอบ</span>
                               <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
-                                {type.asset.length} รายการ
+                                {courseUser.length} รายการ
                               </span>
                             </div>
                             <button
                               type="button"
                               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                              onClick={() => _onPressAddInvent(type.type)}
-                            >
+                              onClick={() => _onPressAddUser()}>
                               <FiPlus className="w-4 h-4" />
                               เพิ่มใหม่
                             </button>
@@ -887,73 +817,46 @@ export default function Detail() {
                             exports={false}
                             meta={[
                               {
-                                content: "รายการ",
-                                key: "assetNameTh",
+                                content: "ผู้รับผิดชอบ",
+                                key: "fullname",
+                              },
+                              {
+                                content: "ตำแหน่งที่รับผิดชอบ",
+                                key: "roleId",
                                 render: (item) => (
                                   <div>
-                                    <div> {item.assetNameTh}</div>
-                                    <div className="flex gap-2 text-gray-500 dark:text-gray-400">
-                                      <div className="text-sm">
-                                        ยี่ห้อ : {item.brandName || "-"}
-                                      </div>
-                                      <div className="text-sm">
-                                        ขนาด : {item.amountUnit || "-"}
-                                      </div>
-                                      <div className="text-sm">
-                                        ห้องปฎิบัติการ :{" "}
-                                        {item.invgroupName || "-"}
-                                      </div>
-                                    </div>
-                                    <div className="text-sm">
-                                      Remark : {item.assetRemark || "-"}
-                                    </div>
+                                    {
+                                      roleList.find(
+                                        (role) =>
+                                          parseInt(role.roleId) === item.roleId
+                                      )?.roleName
+                                    }
                                   </div>
                                 ),
                               },
                               {
-                                content: "จำนวน",
-                                width: 100,
-                                className: "text-center",
-                                key: "amount",
-                                render: (item) => (
-                                  <div>{item.amount.toLocaleString()}</div>
-                                ),
-                              },
-                              {
-                                content: "หน่วย",
-                                width: 100,
-                                key: "unitName",
-                              },
-                              {
-                                key: "assetId",
+                                key: "labcourseUserId",
                                 content: "Action",
                                 width: "100",
                                 sort: false,
+
                                 render: (item) => (
                                   <div className="flex gap-1">
                                     <button
                                       type="button"
                                       className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                       onClick={() => {
-                                        return _onPressEditInvent(
-                                          item.labassetId,
-                                          type.type
-                                        );
-                                      }}
-                                    >
+                                        _onPressEditUser(item.labcourseUserId);
+                                      }}>
                                       <FiEdit className="w-4 h-4" />
                                       แก้ไข
                                     </button>
                                     <button
                                       type="button"
                                       className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                      onClick={() => {
-                                        return _onPressDeleteInvent(
-                                          item.labassetId,
-                                          type.type
-                                        );
-                                      }}
-                                    >
+                                      onClick={() =>
+                                        _onPressDeleteUser(item.labcourseUserId)
+                                      }>
                                       <FiTrash2 className="w-4 h-4" />
                                       ลบ
                                     </button>
@@ -961,172 +864,19 @@ export default function Detail() {
                                 ),
                               },
                             ]}
-                            data={type.asset}
+                            data={courseUser}
                             loading={loading}
                           />
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )} */}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
         )}
       </div>
-
-      <Dialog
-        open={inventFormModal}
-        onClose={_onCloseInventForm}
-        className="relative z-10">
-        <DialogBackdrop
-          transition
-          className="fixed inset-0 text-gray-900 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
-        />
-
-        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <DialogPanel
-              transition
-              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-full sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95">
-              {loadingInvent ? (
-                <div className="p-6 text-center text-gray-500 dark:text-gray-400">
-                  กำลังโหลดข้อมูล...
-                </div>
-              ) : (
-                <form onSubmit={inventForm.handleSubmit}>
-                  <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                      <div className="sm:col-span-12">
-                        <label className={className.label}>
-                          วัสดุที่เลือกใช้
-                        </label>
-                        <select
-                          name="assetId"
-                          value={inventForm.values.assetId}
-                          onChange={inventForm.handleChange}
-                          className={`${className.select} ${
-                            inventForm.touched.assetId &&
-                            inventForm.errors.assetId
-                              ? "border-red-500"
-                              : ""
-                          }`}>
-                          <option value="" disabled>
-                            เลือกวัสดุที่เลือกใช้
-                          </option>
-                          {invent.map((inv) => (
-                            <option key={inv.assetId} value={inv.assetId}>
-                              {inv.assetNameTh} {inv.amountUnit}
-                              {/* [{inv.brandName}                              ]  */}
-                              ({inv.unitName})
-                            </option>
-                          ))}
-                        </select>
-                        {inventForm.touched.assetId &&
-                          inventForm.errors.assetId && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.assetId}
-                            </p>
-                          )}
-                      </div>
-                      {assetInfo && (
-                        <div className="sm:col-span-12">
-                          <div className="border rounded-lg border-blue-600 dark:border-blue-300">
-                            <div className="p-4 border-b border-blue-600 dark:border-blue-300">
-                              <h3 className="font-semibold text-blue-900 dark:text-blue-300">
-                                {assetInfo?.assetNameTh}
-                              </h3>
-                            </div>
-                            <div className="p-4">
-                              <div className="text-gray-500 dark:text-gray-400">
-                                <div className="text-sm">
-                                  ยี่ห้อ : {assetInfo?.brandName || "-"}
-                                </div>
-                                <div className="text-sm">
-                                  ขนาด : {assetInfo?.amountUnit || "-"}
-                                </div>
-                                <div className="text-sm">
-                                  ห้องปฎิบัติการ :{" "}
-                                  {assetInfo?.invgroupName || "-"}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="sm:col-span-9">
-                        <label className={className.label}>จำนวนที่ใช้</label>
-                        <input
-                          type="number"
-                          name="amount"
-                          value={inventForm.values.amount}
-                          onChange={inventForm.handleChange}
-                          className={`${className.input} ${
-                            inventForm.touched.amount &&
-                            inventForm.errors.amount
-                              ? "border-red-500"
-                              : ""
-                          }`}
-                        />
-                        {inventForm.touched.amount &&
-                          inventForm.errors.amount && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.amount}
-                            </p>
-                          )}
-                      </div>
-                      <div className="sm:col-span-3">
-                        <label className={className.label}>หน่วย</label>
-                        <input
-                          value={assetInfo?.unitName || "-"}
-                          disabled
-                          className={className.input}
-                        />
-                      </div>
-                      <div className="sm:col-span-12">
-                        <label className={className.label}>Remark</label>
-                        <input
-                          type="text"
-                          name="assetRemark"
-                          value={inventForm.values.assetRemark}
-                          onChange={inventForm.handleChange}
-                          className={`${className.input} ${
-                            inventForm.touched.assetRemark &&
-                            inventForm.errors.assetRemark
-                              ? "border-red-500"
-                              : ""
-                          }`}
-                        />
-                        {inventForm.touched.assetRemark &&
-                          inventForm.errors.assetRemark && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.assetRemark}
-                            </p>
-                          )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
-                    <button
-                      type="submit"
-                      className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto">
-                      ยืนยัน
-                    </button>
-                    <button
-                      type="button"
-                      data-autofocus
-                      onClick={() => _onCloseInventForm(false)}
-                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto">
-                      ยกเลิก
-                    </button>
-                  </div>
-                </form>
-              )}
-            </DialogPanel>
-          </div>
-        </div>
-      </Dialog>
 
       <Dialog
         open={userFormModal}

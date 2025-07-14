@@ -22,6 +22,18 @@ async function getCourse(courseId) {
   );
 }
 
+async function getSubLabcourse(labId) {
+  return await executeQuery(
+    `SELECT LAB.LAB_ID, LAB.COURSEID, COURSE.COURSEID,COURSE.FACULTYID, COURSE.COURSECODE, COURSE.COURSENAME, COURSE.DESCRIPTION1
+    FROM CST_LABCOURSE LAB
+    INNER JOIN PBL_AVSREGCOURSE_V COURSE ON COURSE.COURSEID = LAB.COURSEID
+    WHERE LAB.LAB_PARENT_ID = :labId AND LAB.FLAG_DEL = 0`,
+    {
+      labId,
+    }
+  );
+}
+
 async function getLabgroup() {
   return await executeQuery(
     `SELECT LABGROUP_ID, LABGROUP_NAME
@@ -68,6 +80,27 @@ async function getClass(courseId, schId) {
   return await executeQuery(
     `SELECT CLASS.CLASSID, CLASS.ACADYEAR, CLASS.SEMESTER, CLASS.SECTION, CLASS.TOTALSEAT, CLASS.CLASSNOTE
     FROM PBL_AVSREGCLASS_V CLASS 
+    INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = :schId
+      AND SCH.FLAG_DEL = 0
+      AND CLASS.ACADYEAR = SCH.ACADYEAR
+      AND CLASS.SEMESTER = SCH.SEMESTER
+    WHERE CLASS.COURSEID = :courseId
+    ORDER BY CLASS.SECTION ASC`,
+    {
+      courseId,
+      schId,
+    }
+  );
+}
+
+async function getParentClass(courseId, schId) {
+  return await executeQuery(
+    `SELECT CLASS.CLASSID, CLASS.ACADYEAR, CLASS.SEMESTER, CLASS.SECTION, CLASS.TOTALSEAT, CLASS.CLASSNOTE
+    FROM PBL_AVSREGCLASS_V CLASS 
+    INNER JOIN CST_LABCOURSE cst_labcourse ON cst_labcourse.courseid = CLASS.COURSEID 
+      AND cst_labcourse.flag_del = 0
+      AND cst_labcourse.lab_parent_id = 0
+      AND cst_labcourse.courseid != :courseId
     INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = :schId
       AND SCH.FLAG_DEL = 0
       AND CLASS.ACADYEAR = SCH.ACADYEAR
@@ -276,6 +309,7 @@ export async function GET(req) {
             AND SCH.SEMESTER = LAB.SEMESTER
             AND SCH.ACADYEAR = LAB.ACADYEAR
         WHERE LAB.FLAG_DEL = 0 AND LAB.LABGROUP_ID = :labgroupId
+        AND (LAB.LAB_PARENT_ID IS NULL OR LAB.LAB_PARENT_ID = 0)
         GROUP BY LAB.LAB_ID
         ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`,
             {
@@ -318,6 +352,7 @@ export async function GET(req) {
             AND SCH.ACADYEAR = REG.ACADYEAR
         WHERE LAB.FLAG_DEL = 0
         AND SCH.SCH_ID IS NOT NULL
+        AND (LAB.LAB_PARENT_ID IS NULL OR LAB.LAB_PARENT_ID = 0)
         GROUP BY LAB.LAB_ID
         ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`,
             {
@@ -328,16 +363,23 @@ export async function GET(req) {
 
         const semester = await getSemester();
         const labgroup = await getLabgroup();
+
+        for (let index = 0; index < data.length; index++) {
+          data[index].sub = await getSubLabcourse(data[index].labId);
+        }
+
         return NextResponse.json({
           success: true,
           data: data,
           semester: semester,
           labgroup: labgroup,
+          say: "No schId provided, returning all lab courses.",
         });
       }
     } else {
       const course = await getCourse(courseId);
       const classData = await getClass(courseId, schId);
+      const parentClass = await getParentClass(courseId, schId);
 
       return NextResponse.json({
         success: true,
@@ -346,6 +388,7 @@ export async function GET(req) {
         class: classData,
         users: users,
         labgroup: labgroup,
+        parentClass: parentClass,
       });
     }
   } catch (error) {
@@ -370,51 +413,109 @@ export async function POST(req) {
       labroom,
       hour,
       personId,
+      parentLabId, // New field for child courses
+      isChild = false, // New field to indicate if this is a child course
+      enrollSeat,
+      totalSeat,
+      note,
     } = body;
 
-    if (
-      [
-        courseid,
-        schId,
-        userId,
-        acadyear,
-        semester,
-        section,
-        labgroupId,
-        labroom,
-        hour,
-        personId,
-      ].some((v) => v === undefined || v === null || v === "")
-    ) {
-      return NextResponse.json(
-        { success: false, message: "Missing fields" },
-        { status: 400 }
-      );
+    // For child courses, we need different required fields
+    if (isChild) {
+      if (!courseid || !parentLabId) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Missing required fields for child course",
+          },
+          { status: 400 }
+        );
+      }
+    } else {
+      // Original validation for parent courses
+      if (
+        [
+          courseid,
+          schId,
+          userId,
+          acadyear,
+          semester,
+          section,
+          labgroupId,
+          labroom,
+          hour,
+          personId,
+        ].some((v) => v === undefined || v === null || v === "")
+      ) {
+        return NextResponse.json(
+          { success: false, message: "Missing fields" },
+          { status: 400 }
+        );
+      }
     }
 
     const labId = await executeQuery(
       `SELECT CST_LABCOURSE_SEQ.NEXTVAL AS ID FROM DUAL`
     );
 
-    await executeQuery(
-      `INSERT INTO CST_LABCOURSE
-        (LAB_ID, COURSEID, SCH_ID, ACADYEAR, SEMESTER, SECTION, LABGROUP_ID, LABROOM, HOUR, PERSON_ID, DATE_CREATED, USER_CREATED)
-       VALUES
-        (:labId, :courseid, :schId, :acadyear, :semester, :section, :labgroupId, :labroom, :hour, :personId, SYSDATE, :userCreated)`,
-      {
-        labId: labId[0].id,
-        courseid,
-        schId,
-        acadyear,
-        semester,
-        section,
-        labgroupId: parseInt(labgroupId, 10),
-        labroom,
-        hour,
-        personId: parseInt(personId, 10),
-        userCreated: userId,
+    if (isChild) {
+      // Get parent course details
+      const parentCourse = await executeQuery(
+        `SELECT * FROM CST_LABCOURSE WHERE LAB_ID = :parentLabId`,
+        { parentLabId }
+      );
+
+      if (parentCourse.length === 0) {
+        return NextResponse.json(
+          { success: false, message: "Parent course not found" },
+          { status: 404 }
+        );
       }
-    );
+
+      const parent = parentCourse[0];
+
+      await executeQuery(
+        `INSERT INTO CST_LABCOURSE
+          (LAB_ID, COURSEID, SCH_ID, ACADYEAR, SEMESTER, SECTION, LABGROUP_ID, LABROOM, HOUR, PERSON_ID, LAB_PARENT_ID, DATE_CREATED, USER_CREATED)
+         VALUES
+          (:labId, :courseid, :schId, :acadyear, :semester, :section, :labgroupId, :labroom, :hour, :personId, :parentLabId, SYSDATE, :userCreated)`,
+        {
+          labId: labId[0].id,
+          courseid,
+          schId: parent.schId,
+          acadyear: parent.acadyear,
+          semester: parent.semester,
+          section: parent.section,
+          labgroupId: parent.labgroupId,
+          labroom: parent.labroom,
+          hour: parent.hour,
+          personId: parent.personId,
+          parentLabId: parentLabId,
+          userCreated: userId || parent.userCreated,
+        }
+      );
+    } else {
+      // Original insert for parent courses
+      await executeQuery(
+        `INSERT INTO CST_LABCOURSE
+          (LAB_ID, COURSEID, SCH_ID, ACADYEAR, SEMESTER, SECTION, LABGROUP_ID, LABROOM, HOUR, PERSON_ID, LAB_PARENT_ID, DATE_CREATED, USER_CREATED)
+         VALUES
+          (:labId, :courseid, :schId, :acadyear, :semester, :section, :labgroupId, :labroom, :hour, :personId, 0, SYSDATE, :userCreated)`,
+        {
+          labId: labId[0].id,
+          courseid,
+          schId,
+          acadyear,
+          semester,
+          section,
+          labgroupId: parseInt(labgroupId, 10),
+          labroom,
+          hour,
+          personId: parseInt(personId, 10),
+          userCreated: userId,
+        }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -508,7 +609,6 @@ export async function PUT(req) {
 export async function DELETE(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
-    const body = await req.json();
 
     const data = await executeQuery(
       `UPDATE CST_LABCOURSE SET FLAG_DEL = 1 WHERE LAB_ID = :id`,

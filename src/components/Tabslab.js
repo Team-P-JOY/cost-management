@@ -32,7 +32,7 @@ const Tabs = () => {
               activeTab === "inventory" ? "bg-fuchsia-200" : ""
             }`}
             onClick={() => setActiveTab("inventory")}>
-            ครุภัณฑ์
+            ครุภัณฑ์ห้องปฎิบัติการ
           </button>
           <button
             className={`tabs-trigger px-4 ${
@@ -65,7 +65,7 @@ const Tabs = () => {
                   <tr className="bg-gray-50">
                     <th className="py-3 px-4 text-left border-b">ที่</th>
                     <th className="py-3 px-4 text-left border-b">
-                      รายการครุภัณฑ์
+                      รายการครุภัณฑ์ห้องปฎิบัติการ
                     </th>
                     <th className="py-3 px-4 text-left border-b">จำนวน</th>
                     <th className="py-3 px-4 text-left border-b">หมายเหตุ</th>

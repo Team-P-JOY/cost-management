@@ -355,10 +355,7 @@ export default function Detail() {
   };
 
   const _onPressDeleteInvent = async (id, type) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
 
     if (result.isConfirmed) {
       if (type === 1) {
@@ -388,8 +385,7 @@ export default function Detail() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
-    >
+      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
       <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-300 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
@@ -415,8 +411,7 @@ export default function Detail() {
                       activeTab === tab.id
                         ? "text-blue-600 border-b-0 rounded-t-lg dark:text-blue-300"
                         : "text-gray-500 border-x-0 border-t-0 dark:text-white"
-                    }`}
-                  >
+                    }`}>
                     <span>{tab.label}</span>
                   </button>
                 ))}
@@ -434,7 +429,7 @@ export default function Detail() {
                       <i>สำนักวิชา</i> : {data.course?.coursename}
                     </div>
                     <div className="sm:col-span-8">
-                      <i>เทอมการศึกษา</i> : {data.class?.[0]?.semester}/
+                      <i>ภาคการศึกษา</i> : {data.class?.[0]?.semester}/
                       {data.class?.[0]?.acadyear}
                     </div>
                     <div className="sm:col-span-4">
@@ -494,7 +489,7 @@ export default function Detail() {
                     {[
                       {
                         type: 1,
-                        name: "ครุภัณฑ์",
+                        name: "ครุภัณฑ์ห้องปฎิบัติการ",
                         asset: labasset.type1,
                       },
                       {
@@ -574,8 +569,7 @@ export default function Detail() {
               <button
                 type="button"
                 className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
-                onClick={() => router.back()}
-              >
+                onClick={() => router.back()}>
                 ย้อนกลับ
               </button>
             </div>

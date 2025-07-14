@@ -20,7 +20,7 @@ export default function MatterPage() {
             {[
               {
                 src: "/material.png",
-                title: "ครุภัณฑ์",
+                title: "ครุภัณฑ์ห้องปฎิบัติการ",
                 href: "/assetss",
                 idType: "1",
               },

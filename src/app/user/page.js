@@ -22,10 +22,7 @@ export default function List() {
     router.push(`/user/${id}`);
   };
   const _onPressDelete = async (id) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
+    const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
 
     if (result.isConfirmed) {
       await axios.delete(`/api/user?id=${id}`);
@@ -105,8 +102,7 @@ export default function List() {
               item.statusId === 1
                 ? "bg-green-500 text-white"
                 : "bg-red-500 text-white"
-            }`}
-          >
+            }`}>
             {item.statusId === 1 ? "ใช้งาน" : "ไม่ใช้งาน"}
           </span>
         );
@@ -124,8 +120,7 @@ export default function List() {
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressEdit(item.userId);
-            }}
-          >
+            }}>
             <FiEdit className="w-4 h-4" />
             แก้ไข
           </button>
@@ -133,8 +128,7 @@ export default function List() {
             className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressDelete(item.userId);
-            }}
-          >
+            }}>
             <FiTrash2 className="w-4 h-4" />
             ลบ
           </button>
@@ -153,8 +147,7 @@ export default function List() {
           <div className="flex gap-1">
             <button
               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
-              onClick={_onPressAdd}
-            >
+              onClick={_onPressAdd}>
               <FiPlus className="w-4 h-4" />
               เพิ่มใหม่
             </button>

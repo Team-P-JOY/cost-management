@@ -8,7 +8,7 @@ export const authOptions = {
       name: "Credentials",
       credentials: {
         username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" },
+        // password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         try {
@@ -16,7 +16,7 @@ export const authOptions = {
             method: "POST",
             body: JSON.stringify({
               username: credentials.username,
-              password: credentials.password,
+              // password: credentials.password,
             }),
             headers: {
               "Content-Type": "application/json",
@@ -24,7 +24,7 @@ export const authOptions = {
           });
           const userAuth = await response.json();
           if (userAuth.status !== "success") {
-            console.log("🛑 Auth failed response:", userAuth);
+            console.log(" Auth failed response:", userAuth);
             return null;
           }
 
@@ -87,14 +87,20 @@ export const authOptions = {
       return token;
     },
     async session({ session, token }) {
-      session.user.avatar = token.avatar;
-      session.user.person_id = token.person_id;
-      session.user.username = token.username;
-      session.user.userInfo = token.userInfo;
-      session.user.userRole = token.userRole;
-      session.user.userAccess = token.userAccess;
+      if (token) {
+        session.user.avatar = token.avatar;
+        session.user.person_id = token.person_id;
+        session.user.username = token.username;
+        session.user.userInfo = token.userInfo;
+        session.user.userRole = token.userRole;
+        session.user.userAccess = token.userAccess;
+      }
       return session;
     },
+  },
+  pages: {
+    signIn: '/login',
+    error: '/login',
   },
 };
 

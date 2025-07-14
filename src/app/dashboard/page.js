@@ -14,13 +14,21 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { FileText, Users, Beaker, TrendingUp } from "lucide-react";
+import {
+  FileText,
+  Users,
+  Beaker,
+  TrendingUp,
+  User2,
+  Armchair,
+} from "lucide-react";
 const tabs1 = [
   "ภาพรวม",
   "บทปฏิบัติการ",
-  "ครุภัณฑ์",
+  "ครุภัณฑ์ห้องปฎิบัติการ",
   "วัสดุสิ้นเปลือง",
   "วัสดุไม่สิ้นเปลือง",
+  "ครุภัณฑ์วิทยาศาสตร์",
   "อุปกรณ์ชำรุด",
   // "คณะ",
   // "หลักสูตร",
@@ -39,6 +47,8 @@ export default function Dashboard({ searchParams }) {
   const [dataDurableitems, setDurableitems] = useState(null);
   const [dataCourse, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [broken, setBroken] = useState(null);
+  const [scientific, setScientific] = useState([]);
   // const router = useRouter();
   // const { labId } = router.query;
   const params = use(searchParams);
@@ -55,15 +65,6 @@ export default function Dashboard({ searchParams }) {
   const id = decodeLabId(encodedLabId);
   console.log("labId", id);
   const [activeTab1, setActiveTab1] = useState("ภาพรวม");
-  const chartData = [
-    { month: "ม.ค", value: 25000 },
-    { month: "ก.พ", value: 32000 },
-    { month: "มี.ค", value: 28000 },
-    { month: "เม.ย", value: 35000 },
-    { month: "พ.ค", value: 40000 },
-    { month: "มิ.ย", value: 38000 },
-  ];
-
   useEffect(() => {
     async function fetchData() {
       const res = await fetch(`/api/report/labcourse?id=${id}`);
@@ -77,6 +78,8 @@ export default function Dashboard({ searchParams }) {
         setSupplies(json.supplies);
         setDurableitems(json.durableitems);
         setFacproReport(json.facproReport);
+        setBroken(json.broken);
+        setScientific(Array.isArray(json.scientific) ? json.scientific : []);
         console.log("json", json);
       } else {
         console.error("Failed to fetch data");
@@ -97,15 +100,6 @@ export default function Dashboard({ searchParams }) {
           ? dataCourse[0].coursename
           : " (กำลังโหลด...)"
       }`}>
-      {/* <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-semibold text-white dark:text-gray-300">
-          Dashboard
-        </h1>
-        <main>
-          <h1>Welcome, {session.user.name}</h1>
-          <button onClick={() => signOut()}>Logout</button>
-        </main>
-      </div> */}
       <div className="min-h-screen bg-purple-50 rounded-lg p-4">
         <div
           role="tablist"
@@ -153,7 +147,7 @@ export default function Dashboard({ searchParams }) {
                             <FileText className="h-5 w-5 text-red-500" />
                           </div>
                           <span className="text-red-500 font-medium">
-                            ต้นทุนรวม1
+                            ต้นทุนรวม
                           </span>
                         </div>
                         <h2 className="text-black text-2xl font-bold">
@@ -293,8 +287,30 @@ export default function Dashboard({ searchParams }) {
                               ? dataCourse[0].coursenameeng
                               : "กำลังโหลด..."}{" "}
                           </div>
-
-                          <div className="text-gray-500 text-base">คณะ:</div>
+                          <div className="text-gray-500 text-base">
+                            รายวิชาย่อย:
+                          </div>
+                          <div className="text-black font-medium text-base">
+                            {dataCourse &&
+                            dataCourse.length > 0 &&
+                            dataCourse[0].sub &&
+                            dataCourse[0].sub.length > 0 ? (
+                              <ul className="list-disc list-inside ">
+                                {dataCourse[0].sub.map((sub, iSub) => (
+                                  <li
+                                    key={iSub}
+                                    className="text-sm text-gray-900 dark:text-gray-400 flex items-center gap-1">
+                                    {sub.coursecode} {sub.coursename}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <div className="text-sm text-gray-400 ">-</div>
+                            )}
+                          </div>
+                          <div className="text-gray-500 text-base">
+                            สำนักวิชา:
+                          </div>
                           <div className="text-black font-medium text-base">
                             {" "}
                             {dataCourse && dataCourse.length > 0
@@ -325,16 +341,6 @@ export default function Dashboard({ searchParams }) {
                               ? dataCourse[0].labgroupName
                               : "กำลังโหลด..."}{" "}
                           </div>
-
-                          <div className="text-gray-500 text-base">
-                            จำนวนกลุ่ม:
-                          </div>
-                          <div className="text-black font-medium text-base">
-                            {" "}
-                            {dataCourse && dataCourse.length > 0
-                              ? dataCourse[0].labgroupNum
-                              : "กำลังโหลด..."}{" "}
-                          </div>
                         </div>
                       </div>
 
@@ -356,11 +362,20 @@ export default function Dashboard({ searchParams }) {
                                     className="grid gap-y-2 text-sm">
                                     <div className="text-base flex justify-between py-1">
                                       <div className="text-gray-500">
-                                        Section {cls.section}:
+                                        กลุ่ม {cls.section}:
                                       </div>
                                       <div className="text-black font-medium">
-                                        {cls.enrollseat} คน / {cls.totalseat}{" "}
+                                        {/* {cls.enrollseat} คน / {cls.totalseat}{" "}
                                         ที่นั่ง
+                                        <p className="block">
+                                          กลุ่มเรียน : {item.section}
+                                        </p> */}
+                                        <p className="block opacity-70 flex items-center gap-1 ">
+                                          <User2 className="w-4 h-4" />{" "}
+                                          {cls.enrollseat} |{" "}
+                                          <Armchair className="w-4 h-4" />{" "}
+                                          {cls.totalseat}
+                                        </p>
                                       </div>
                                     </div>
                                   </div>
@@ -379,32 +394,6 @@ export default function Dashboard({ searchParams }) {
                                       0
                                     )}{" "}
                                     คน
-                                  </div>
-                                </div>
-                                <div className="flex justify-between py-1 font-medium">
-                                  <div className="text-gray-500 text-base">
-                                    อัตราการเต็มรวม:
-                                  </div>
-                                  <div className="text-black text-base">
-                                    {(() => {
-                                      const totalEnroll = dataReg.reduce(
-                                        (sum, cls) =>
-                                          sum + (cls.enrollseat || 0),
-                                        0
-                                      );
-                                      const totalSeat = dataReg.reduce(
-                                        (sum, cls) =>
-                                          sum + (cls.totalseat || 0),
-                                        0
-                                      );
-                                      return totalSeat > 0
-                                        ? (
-                                            (totalEnroll / totalSeat) *
-                                            100
-                                          ).toFixed(2)
-                                        : "0.00";
-                                    })()}
-                                    %
                                   </div>
                                 </div>
                               </div>
@@ -491,7 +480,7 @@ export default function Dashboard({ searchParams }) {
                             {
                               key: "costPerprogram1",
                               className: "text-right",
-                              content: "ครุภัณฑ์",
+                              content: "ครุภัณฑ์ห้องปฎิบัติการ",
                               render: (row) =>
                                 row.costPerprogram1 != null
                                   ? Number(row.costPerprogram1).toLocaleString(
@@ -550,88 +539,91 @@ export default function Dashboard({ searchParams }) {
                     {/* Top Lab Costs */}
                     <div className="card mt-6 p-6 burder shadow border-black-900 rounded-lg">
                       <h2 className="text-black text-2xl font-bold mb-1">
-                        ต้นทุนงบปฏิบัติการสูงสุด
+                        ต้นทุนบทปฏิบัติการรายวิชา
                       </h2>
                       <p className="text-sm text-gray-500 mb-4">
-                        ข้อมูลต้นทุนของบทปฏิบัติ
+                        รายละเอียดต้นทุนของแต่ละบทปฏิบัติการ
                       </p>
 
                       <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b">
-                              <th className="text-left py-3 font-medium text-gray-500">
-                                บทปฏิบัติการ
-                              </th>
-                              <th className="text-left py-3 font-medium text-gray-500">
-                                หัวหน้างบปฏิบัติการ
-                              </th>
-                              <th className="text-right py-3 font-medium text-gray-500">
-                                ต้นทุนรวม (บาท)
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {Array.isArray(dataLabjob) &&
-                            dataLabjob.length > 0 ? (
-                              dataLabjob.map((job, index) => (
-                                <tr key={index} className="border-b">
-                                  <td className="text-black py-3">
-                                    {job.labjobTitle}
-                                  </td>
-                                  <td className="py-3 text-black">
-                                    {job.fullname}
-                                  </td>
-                                  <td className="py-3 text-right text-black">
-                                    {(() => {
-                                      const total = job.asset.reduce(
-                                        (sum, item) => {
-                                          const amount = parseFloat(
-                                            item.amountUsed || 0
-                                          );
-                                          const price = parseFloat(
-                                            item.unitPrice || 0
-                                          );
-                                          return sum + amount * price;
-                                        },
-                                        0
+                        <TableList
+                          meta={[
+                            {
+                              key: "labjobTitle",
+                              content: "ชื่อบทปฏิบัติการ",
+                              render: (item) => (
+                                <div className="flex flex-col">
+                                  <p className="block font-medium text-gray-900 dark:text-gray-100">
+                                    {item.labjobTitle}
+                                  </p>
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "fullname",
+                              content: "หัวหน้าบทปฏิบัติการ",
+                              render: (item) => (
+                                <div className="flex flex-col">
+                                  <p className="block text-gray-900 dark:text-gray-100">
+                                    {item.fullname}
+                                  </p>
+                                  <p className="block opacity-60 text-sm">
+                                    ผู้รับผิดชอบ
+                                  </p>
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "assetCount",
+                              content: "จำนวนรายการ",
+                              render: (item) => (
+                                <div className="text-center">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {item.asset ? item.asset.length : 0} รายการ
+                                  </span>
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "totalCost",
+                              content: "ต้นทุนรวม (บาท)",
+                              render: (item) => {
+                                const total = item.asset
+                                  ? item.asset.reduce((sum, asset) => {
+                                      const amount = parseFloat(
+                                        asset.amountUsed || 0
                                       );
+                                      const price = parseFloat(
+                                        asset.unitPrice || 0
+                                      );
+                                      return sum + amount * price;
+                                    }, 0)
+                                  : 0;
 
-                                      return (
-                                        <>
-                                          {/* {job.asset.map((item, i) => (
-                                        <div key={i}>
-                                          {item.assetNameTh} ({item.amountUsed} ชิ้น)
-                                        </div>
-                                      ))} */}
-                                          <div className="mt-2 font-medium text-black-600">
-                                            {total.toLocaleString(undefined, {
-                                              minimumFractionDigits: 2,
-                                              maximumFractionDigits: 2,
-                                            })}
-                                          </div>
-                                        </>
-                                      );
-                                    })()}
-                                  </td>
-                                </tr>
-                              ))
-                            ) : (
-                              <tr>
-                                <td
-                                  colSpan={3}
-                                  className="py-3 text-center text-gray-400">
-                                  ไม่พบข้อมูลการทดลอง
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
+                                return (
+                                  <div className="text-right">
+                                    <div className="text-lg font-bold text-green-600">
+                                      {total.toLocaleString(undefined, {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                      })}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      บาท
+                                    </div>
+                                  </div>
+                                );
+                              },
+                            },
+                          ]}
+                          data={dataLabjob}
+                          loading={loading}
+                        />
                       </div>
                     </div>
                   </main>
                 )}
-                {isActive && activeTab1 === "ครุภัณฑ์" && (
+                {isActive && activeTab1 === "ครุภัณฑ์ห้องปฎิบัติการ" && (
                   <main className="container mx-auto py-6 px-4">
                     {/* Top Lab Costs */}
                     <div className="card mt-6 p-6 burder shadow border-black-900 rounded-lg">
@@ -649,7 +641,7 @@ export default function Dashboard({ searchParams }) {
                         สำหรับการลงทุนทางครุภัณฑ์
                       </h2>
                       <p className="text-sm text-gray-500 mb-4">
-                        รายการครุภัณฑ์
+                        รายการครุภัณฑ์ห้องปฎิบัติการ
                       </p>
 
                       <div className="overflow-x-auto">
@@ -657,7 +649,7 @@ export default function Dashboard({ searchParams }) {
                           meta={[
                             {
                               key: "assetNameTh",
-                              content: "รายการครุภัณฑ์",
+                              content: "รายการครุภัณฑ์ห้องปฎิบัติการ",
                               render: (item) => (
                                 <div className="flex flex-col">
                                   <p className="block">
@@ -738,6 +730,77 @@ export default function Dashboard({ searchParams }) {
                           data={dataEquipment}
                           loading={loading}
                         />
+
+                        {/* แถวสรุปรวม */}
+                        {dataEquipment && dataEquipment.length > 0 && (
+                          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-t-2 border-gray-200">
+                            <h3 className="font-semibold text-lg mb-3 text-gray-700 dark:text-gray-200">
+                              สรุปรวมครุภัณฑ์ห้องปฎิบัติการ
+                            </h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div className="text-center p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                                <div className="text-blue-600 dark:text-blue-300 font-medium">
+                                  จำนวนรายการ
+                                </div>
+                                <div className="text-xl font-bold text-blue-800 dark:text-blue-200">
+                                  {dataEquipment.length} รายการ
+                                </div>
+                              </div>
+
+                              <div className="text-center p-3 bg-green-50 dark:bg-green-900 rounded-lg">
+                                <div className="text-green-600 dark:text-green-300 font-medium">
+                                  ราคารวมทั้งหมด
+                                </div>
+                                <div className="text-xl font-bold text-green-800 dark:text-green-200">
+                                  {dataEquipment
+                                    .reduce(
+                                      (sum, item) =>
+                                        sum + (item.itemTotal || 0),
+                                      0
+                                    )
+                                    .toLocaleString()}{" "}
+                                  บาท
+                                </div>
+                              </div>
+
+                              <div className="text-center p-3 bg-purple-50 dark:bg-purple-900 rounded-lg">
+                                <div className="text-purple-600 dark:text-purple-300 font-medium">
+                                  ราคา/เทอม รวม
+                                </div>
+                                <div className="text-xl font-bold text-purple-800 dark:text-purple-200">
+                                  {dataEquipment
+                                    .reduce(
+                                      (sum, item) =>
+                                        sum + (item.priceSemester || 0),
+                                      0
+                                    )
+                                    .toLocaleString(undefined, {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}{" "}
+                                  บาท
+                                </div>
+                              </div>
+
+                              <div className="text-center p-3 bg-orange-50 dark:bg-orange-900 rounded-lg">
+                                <div className="text-orange-600 dark:text-orange-300 font-medium">
+                                  ราคา/เทอม/คน รวม
+                                </div>
+                                <div className="text-xl font-bold text-orange-800 dark:text-orange-200">
+                                  {dataEquipment
+                                    .reduce(
+                                      (sum, item) =>
+                                        sum +
+                                        (item.costPerHourTotalStudents || 0),
+                                      0
+                                    )
+                                    .toFixed(2)}{" "}
+                                  บาท
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </main>
@@ -839,6 +902,75 @@ export default function Dashboard({ searchParams }) {
                           data={dataSupplies}
                           loading={loading}
                         />
+
+                        {/* แถวสรุปรวมวัสดุสิ้นเปลือง */}
+                        {dataSupplies && dataSupplies.length > 0 && (
+                          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-t-2 border-gray-200">
+                            <h3 className="font-semibold text-lg mb-3 text-gray-700 dark:text-gray-200">
+                              สรุปรวมวัสดุสิ้นเปลือง
+                            </h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div className="text-center p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                                <div className="text-blue-600 dark:text-blue-300 font-medium">
+                                  จำนวนรายการ
+                                </div>
+                                <div className="text-xl font-bold text-blue-800 dark:text-blue-200">
+                                  {dataSupplies.length} รายการ
+                                </div>
+                              </div>
+
+                              <div className="text-center p-3 bg-green-50 dark:bg-green-900 rounded-lg">
+                                <div className="text-green-600 dark:text-green-300 font-medium">
+                                  ราคารวมทั้งหมด
+                                </div>
+                                <div className="text-xl font-bold text-green-800 dark:text-green-200">
+                                  {dataSupplies
+                                    .reduce(
+                                      (sum, item) =>
+                                        sum + (item.itemTotal || 0),
+                                      0
+                                    )
+                                    .toLocaleString(undefined, {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}{" "}
+                                  บาท
+                                </div>
+                              </div>
+
+                              <div className="text-center p-3 bg-purple-50 dark:bg-purple-900 rounded-lg">
+                                <div className="text-purple-600 dark:text-purple-300 font-medium">
+                                  จำนวนที่ใช้รวม
+                                </div>
+                                <div className="text-xl font-bold text-purple-800 dark:text-purple-200">
+                                  {dataSupplies
+                                    .reduce(
+                                      (sum, item) =>
+                                        sum + (item.amountUsed || 0),
+                                      0
+                                    )
+                                    .toFixed(2)}{" "}
+                                  หน่วย
+                                </div>
+                              </div>
+
+                              <div className="text-center p-3 bg-orange-50 dark:bg-orange-900 rounded-lg">
+                                <div className="text-orange-600 dark:text-orange-300 font-medium">
+                                  ราคารวม/คน รวม
+                                </div>
+                                <div className="text-xl font-bold text-orange-800 dark:text-orange-200">
+                                  {dataSupplies
+                                    .reduce(
+                                      (sum, item) => sum + (item.priceStd || 0),
+                                      0
+                                    )
+                                    .toFixed(2)}{" "}
+                                  บาท
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </main>
@@ -964,6 +1096,478 @@ export default function Dashboard({ searchParams }) {
                           data={dataDurableitems}
                           loading={loading}
                         />
+
+                        {/* แถวสรุปรวมวัสดุไม่สิ้นเปลือง */}
+                        {dataDurableitems && dataDurableitems.length > 0 && (
+                          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-t-2 border-gray-200">
+                            <h3 className="font-semibold text-lg mb-3 text-gray-700 dark:text-gray-200">
+                              สรุปรวมวัสดุไม่สิ้นเปลือง
+                            </h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div className="text-center p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                                <div className="text-blue-600 dark:text-blue-300 font-medium">
+                                  จำนวนรายการ
+                                </div>
+                                <div className="text-xl font-bold text-blue-800 dark:text-blue-200">
+                                  {dataDurableitems.length} รายการ
+                                </div>
+                              </div>
+
+                              <div className="text-center p-3 bg-green-50 dark:bg-green-900 rounded-lg">
+                                <div className="text-green-600 dark:text-green-300 font-medium">
+                                  ราคารวมทั้งหมด
+                                </div>
+                                <div className="text-xl font-bold text-green-800 dark:text-green-200">
+                                  {dataDurableitems
+                                    .reduce(
+                                      (sum, item) =>
+                                        sum + (item.itemTotal || 0),
+                                      0
+                                    )
+                                    .toLocaleString(undefined, {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}{" "}
+                                  บาท
+                                </div>
+                              </div>
+
+                              <div className="text-center p-3 bg-purple-50 dark:bg-purple-900 rounded-lg">
+                                <div className="text-purple-600 dark:text-purple-300 font-medium">
+                                  ราคา/ภาคการศึกษา รวม
+                                </div>
+                                <div className="text-xl font-bold text-purple-800 dark:text-purple-200">
+                                  {dataDurableitems
+                                    .reduce(
+                                      (sum, item) =>
+                                        sum + (item.priceSemester || 0),
+                                      0
+                                    )
+                                    .toLocaleString(undefined, {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}{" "}
+                                  บาท
+                                </div>
+                              </div>
+
+                              <div className="text-center p-3 bg-orange-50 dark:bg-orange-900 rounded-lg">
+                                <div className="text-orange-600 dark:text-orange-300 font-medium">
+                                  ราคารวม/คน รวม
+                                </div>
+                                <div className="text-xl font-bold text-orange-800 dark:text-orange-200">
+                                  {dataDurableitems
+                                    .reduce(
+                                      (sum, item) => sum + (item.costStd || 0),
+                                      0
+                                    )
+                                    .toFixed(2)}{" "}
+                                  บาท
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </main>
+                )}
+                {isActive && activeTab1 === "ครุภัณฑ์วิทยาศาสตร์" && (
+                  <main className="container mx-auto py-6 px-4">
+                    {/* Scientific Equipment Costs */}
+                    <div className="card mt-6 p-6 burder shadow border-black-900 rounded-lg">
+                      <h2 className="text-black text-xl font-bold mb-1">
+                        การคิดราคาต้นทุนของรายวิชา
+                        <span>
+                          :{" "}
+                          {dataCourse && dataCourse.length > 0
+                            ? dataCourse[0].coursecode
+                            : "กำลังโหลด..."}{" "}
+                          {dataCourse && dataCourse.length > 0
+                            ? dataCourse[0].coursename
+                            : "กำลังโหลด..."}{" "}
+                        </span>
+                        สำหรับการลงทุนทางครุภัณฑ์วิทยาศาสตร์
+                      </h2>
+                      <p className="text-sm text-gray-500 mb-4">
+                        รายการครุภัณฑ์วิทยาศาสตร์
+                      </p>
+
+                      <div className="overflow-x-auto">
+                        {Array.isArray(scientific) && scientific.length > 0 ? (
+                          <>
+                            <TableList
+                              meta={[
+                                {
+                                  key: "assetNameTh",
+                                  content: "รายการวัสดุไม่สิ้นเปลือง",
+                                  render: (item) => (
+                                    <div className="flex flex-col">
+                                      <p className="block">
+                                        {item.assetNameTh}
+                                      </p>
+                                      <p className="block opacity-60 text-sm">
+                                        {item.assetNameEng}
+                                      </p>
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: "packPrice",
+                                  content: "ราคา/แพ็ค ",
+                                  render: (item) => (
+                                    <div className="text-right">
+                                      {item.packPrice?.toLocaleString() ?? "-"}
+                                      <p className="text-xs opacity-60">
+                                        บาท/pack
+                                      </p>
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: "unitPrice",
+                                  content: "ราคา/หน่วย ",
+                                  render: (item) => (
+                                    <div className="text-right">
+                                      {item.unitPrice?.toLocaleString() ?? "-"}
+                                      <p className="text-xs opacity-60">
+                                        บาท/หน่วย
+                                      </p>
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: "amountUsed",
+                                  content: "จำนวนที่ใช้ ",
+                                  render: (item) => (
+                                    <div className="text-right">
+                                      {item.amountUsed?.toFixed(2) ?? "-"}
+                                      <p className="text-xs opacity-60">
+                                        หน่วย
+                                      </p>
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: "itemTotal",
+                                  content: "ราคารวม ",
+                                  render: (item) => (
+                                    <div className="text-right">
+                                      {item.itemTotal?.toLocaleString(
+                                        undefined,
+                                        {
+                                          minimumFractionDigits: 2,
+                                          maximumFractionDigits: 2,
+                                        }
+                                      ) ?? "-"}
+                                      <p className="text-xs opacity-60">บาท</p>
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: "costStd",
+                                  content: "ราคาที่ใช้/ชม. ",
+                                  render: (item) => (
+                                    <div className="text-right">
+                                      {item.costPerHour5y?.toFixed(2) ?? "-"}
+                                      <p className="text-xs opacity-60">
+                                        บาท/ชม.
+                                      </p>
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: "hourUsed",
+                                  content: "จำนวนชม. ",
+                                  render: (item) => (
+                                    <div className="text-right">
+                                      {item.hourUsed?.toFixed(2) ?? "-"}
+                                      <p className="text-xs opacity-60">
+                                        ที่ใช้/เทอม
+                                      </p>
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: "priceSemester",
+                                  content: "ราคา/ภาคการศึกษา ",
+                                  render: (item) => (
+                                    <div className="text-right">
+                                      {item.priceSemester?.toLocaleString(
+                                        undefined,
+                                        {
+                                          minimumFractionDigits: 2,
+                                          maximumFractionDigits: 2,
+                                        }
+                                      ) ?? "-"}
+                                      <p className="text-xs opacity-60">
+                                        บาท/เทอม
+                                      </p>
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: "costStd",
+                                  content: "ต้นทุนต่อนักศึกษา",
+                                  render: (item) => (
+                                    <div className="text-right">
+                                      <p className="text-green-600 dark:text-green-400 font-semibold">
+                                        {Number(item.costStd).toLocaleString(
+                                          "th-TH",
+                                          {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                          }
+                                        )}
+                                      </p>
+                                      <p className="text-xs opacity-60">
+                                        บาท/คน
+                                      </p>
+                                    </div>
+                                  ),
+                                },
+                              ]}
+                              data={scientific}
+                            />
+
+                            {/* Summary Row */}
+                            <div className="mt-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4">
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="text-center">
+                                  <p className="text-sm font-medium text-blue-600">
+                                    รวมรายการ
+                                  </p>
+                                  <p className="text-lg font-bold text-blue-900">
+                                    {scientific.length} รายการ
+                                  </p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-sm font-medium text-blue-600">
+                                    รวมจำนวนที่ใช้
+                                  </p>
+                                  <p className="text-lg font-bold text-blue-900">
+                                    {scientific
+                                      .reduce(
+                                        (sum, item) =>
+                                          sum + Number(item.amountUsed || 0),
+                                        0
+                                      )
+                                      .toLocaleString("th-TH")}
+                                  </p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-sm font-medium text-blue-600">
+                                    รวมราคาต่อเทอม
+                                  </p>
+                                  <p className="text-lg font-bold text-blue-900">
+                                    {scientific
+                                      .reduce(
+                                        (sum, item) =>
+                                          sum + Number(item.priceSemester || 0),
+                                        0
+                                      )
+                                      .toLocaleString("th-TH", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                      })}{" "}
+                                    บาท
+                                  </p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-sm font-medium text-blue-600">
+                                    เฉลี่ยต้นทุนต่อนักศึกษา
+                                  </p>
+                                  <p className="text-lg font-bold text-green-600">
+                                    {scientific.length > 0
+                                      ? (
+                                          scientific.reduce(
+                                            (sum, item) =>
+                                              sum + Number(item.costStd || 0),
+                                            0
+                                          ) / scientific.length
+                                        ).toLocaleString("th-TH", {
+                                          minimumFractionDigits: 2,
+                                          maximumFractionDigits: 2,
+                                        })
+                                      : "0.00"}{" "}
+                                    บาท/คน
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-center py-8">
+                            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                              <svg
+                                className="w-8 h-8 text-green-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            </div>
+                            <p className="text-gray-500 text-lg">
+                              ไม่มีครุภัณฑ์วิทยาศาสตร์ที่ต้องรายงาน
+                            </p>
+                            <p className="text-gray-400 text-sm mt-2">
+                              ห้องปฏิบัติการนี้ไม่มีการใช้ครุภัณฑ์วิทยาศาสตร์
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </main>
+                )}
+                {isActive && activeTab1 === "อุปกรณ์ชำรุด" && (
+                  <main className="container mx-auto py-6 px-4">
+                    {/* Broken Equipment */}
+                    <div className="card mt-6 p-6 burder shadow border-black-900 rounded-lg">
+                      <h2 className="text-black text-xl font-bold mb-1">
+                        รายการอุปกรณ์ชำรุดและต้องซ่อมแซม
+                        <span>
+                          {" รายวิชา "}
+                          {dataCourse && dataCourse.length > 0
+                            ? dataCourse[0].coursecode
+                            : "กำลังโหลด..."}{" "}
+                          {dataCourse && dataCourse.length > 0
+                            ? dataCourse[0].coursename
+                            : "กำลังโหลด..."}{" "}
+                        </span>
+                      </h2>
+                      <p className="text-sm text-gray-500 mb-4">
+                        อุปกรณ์ที่ชำรุดและต้องดำเนินการซ่อมแซมหรือเปลี่ยนใหม่
+                      </p>
+
+                      <div className="overflow-x-auto">
+                        <TableList
+                          meta={[
+                            {
+                              key: "assetNameTh",
+                              content: "ชื่ออุปกรณ์",
+                              render: (item) => (
+                                <div className="flex flex-col">
+                                  <p className="block font-medium text-gray-900 dark:text-gray-100">
+                                    {item.assetNameTh}
+                                  </p>
+                                  <p className="block opacity-60 text-sm">
+                                    {item.assetNameEng || "ไม่มีชื่อภาษาอังกฤษ"}
+                                  </p>
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "brandName",
+                              content: "ยี่ห้อ / รุ่น",
+                              render: (item) => (
+                                <div className="flex flex-col">
+                                  <p className="block text-gray-900 dark:text-gray-100">
+                                    {item.brandName || "-"}
+                                  </p>
+                                  <p className="block opacity-60 text-sm">
+                                    {item.version || "ไม่ระบุรุ่น"}
+                                  </p>
+                                </div>
+                              ),
+                            },
+
+                            {
+                              key: "unitPrice",
+                              content: "ราคาต่อหน่วย",
+                              render: (item) => (
+                                <div className="text-right">
+                                  <div className="text-base font-medium text-gray-900">
+                                    {item.unitPrice?.toLocaleString() ?? "-"}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    บาท
+                                  </div>
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "packPrice",
+                              content: "ราคาต่อแพ็ค",
+                              render: (item) => (
+                                <div className="text-right">
+                                  <div className="text-base font-medium text-gray-900">
+                                    {item.packPrice?.toLocaleString() ?? "-"}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    บาท
+                                  </div>
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "brokenAmount",
+                              content: "จำนวนที่ชำรุด (ชิ้น)",
+                              render: (item) => (
+                                <div className="text-center">
+                                  <div className="text-base font-medium text-red-600">
+                                    {item.brokenAmount || "-"}
+                                  </div>
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "totalCost",
+                              content: "มูลค่าความเสียหาย",
+                              render: (item) => {
+                                const cost =
+                                  (item.unitPrice || 0) *
+                                  (item.brokenAmount || 0);
+                                return (
+                                  <div className="text-right">
+                                    <div className="text-lg font-bold text-red-600">
+                                      {cost.toLocaleString(undefined, {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                      })}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      บาท
+                                    </div>
+                                  </div>
+                                );
+                              },
+                            },
+                          ]}
+                          data={broken || []}
+                          loading={loading}
+                        />
+
+                        {/* กรณีไม่มีข้อมูล */}
+                        {(!broken || broken.length === 0) && !loading && (
+                          <div className="text-center py-8">
+                            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                              <svg
+                                className="w-8 h-8 text-green-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                              ไม่มีอุปกรณ์ชำรุด
+                            </h3>
+                            <p className="text-gray-500">
+                              ขณะนี้ไม่มีอุปกรณ์ที่ชำรุดในรายวิชานี้
+                              ทุกอุปกรณ์อยู่ในสภาพดี
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </main>
@@ -972,7 +1576,6 @@ export default function Dashboard({ searchParams }) {
             );
           })}
         </div>
-        );
       </div>
     </Content>
   );
