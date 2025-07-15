@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiInfo } from "react-icons/fi";
 import Content from "@/components/Content";
@@ -16,7 +16,7 @@ const className = {
   select: "block px-4 py-2 border rounded-md dark:bg-gray-800",
 };
 
-export default function List() {
+function ListContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -456,5 +456,13 @@ export default function List() {
         </div>
       </div>
     </Content>
+  );
+}
+
+export default function List() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <ListContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
@@ -28,7 +28,7 @@ import {
   X,
 } from "lucide-react";
 
-export default function List() {
+function ListContent() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "asc" });
   const { data: session } = useSession();
@@ -304,13 +304,21 @@ export default function List() {
     },
   ];
   const processedData = useMemo(() => {
+    console.log("Processing data...", data.data);
+    // if (!data || !data.data) return [];
     let result = [];
     if (userlogin === "แอดมิน") {
       result = data.data;
-    } else if (userlogin === "หัวหน้าฝ่าย") {
+    } else if (
+      userlogin === "หัวหน้าฝ่าย" ||
+      userlogin === "ผู้ประสานงานรายวิชา"
+    ) {
       result = data.data.filter((item) => {
+        console.log("Filtered data:", item);
         return (
-          item.userCreated == userIdlogin || item.labgroupName === labgroupName
+          item.userCreated == userIdlogin &&
+          item.labgroupName === labgroupName &&
+          item.personId === userIdlogin
         );
       });
     }
@@ -445,6 +453,14 @@ export default function List() {
         onSuccess={_onAddChildSuccess}
       />
     </Content>
+  );
+}
+
+export default function List() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <ListContent />
+    </Suspense>
   );
 }
 

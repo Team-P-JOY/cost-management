@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import Content from "@/components/Content";
@@ -26,7 +26,7 @@ import {
 import TableList from "@/components/TableList";
 import { useSession } from "next-auth/react";
 
-export default function Page() {
+function PageContent() {
   const router = useRouter(); // Get the router object
   const { data: session } = useSession();
   //console.log("session", session);
@@ -35,7 +35,7 @@ export default function Page() {
   console.log("userIdlogin", userlogin);
   const breadcrumb = [
     { name: "บันทึกใบงานเตรียมปฏิบัติการ" },
-    { name: "รายการรายวิชา", link: "/prepare-lab" },
+    { name: "รายการรายวิชา", link: "/prepare-labu" },
   ];
   const searchParams = useSearchParams();
   const initialSchId = searchParams.get("schId") || ""; // Get schId from URL
@@ -317,5 +317,13 @@ export default function Page() {
         </div>
       </div>
     </Content>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <PageContent />
+    </Suspense>
   );
 }

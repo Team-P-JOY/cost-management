@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiInfo } from "react-icons/fi";
 import Content from "@/components/Content";
@@ -8,7 +8,7 @@ import TableList from "@/components/TableList";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 
-export default function List() {
+function ListContent() {
   const { data: session } = useSession();
   const userlogin = session?.user.userRole;
   const userIdlogin = session?.user.person_id;
@@ -101,7 +101,7 @@ export default function List() {
     }
 
     fetchData();
-  }, [reload, schId, labgroupId]);
+  }, [reload, schId, labgroupId, labgroupName, userIdlogin, userlogin]);
 
   const meta = [
     {
@@ -110,7 +110,7 @@ export default function List() {
       width: "100",
       render: (item) => (
         <div>
-           {item.semester}/{item.acadyear}
+          {item.semester}/{item.acadyear}
         </div>
       ),
     },
@@ -245,6 +245,14 @@ export default function List() {
         </div>
       </div>
     </Content>
+  );
+}
+
+export default function List() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <ListContent />
+    </Suspense>
   );
 }
 

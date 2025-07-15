@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useCallback, Suspense } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import Select from "react-select";
@@ -28,7 +28,7 @@ import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import TableList from "@/components/TableList";
 import AutocompleteSelect2 from "@/components/AutocompleteSelect2";
 
-export default function Detail() {
+function PlanAssetContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   // const { id } = useParams();
@@ -37,9 +37,9 @@ export default function Detail() {
   const idParam = searchParams.get("id");
   console.log("Raw id:", idParam);
 
-  const labId = parseInt(idParam, 10);
-  const isNew = labId === "new";
-  console.log("Parsed labId:", labId, typeof labId);
+  const isNew = idParam === "new";
+  const labId = isNew ? null : parseInt(idParam, 10);
+  console.log("Parsed labId:", labId, typeof labId, "isNew:", isNew);
 
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("tab1");
@@ -163,7 +163,9 @@ export default function Detail() {
         await axios.post(`/api/use-asset/plnasset`, { labaset: payload });
       }
 
-      localStorage.setItem("labCourseAssetData", JSON.stringify(payload));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("labCourseAssetData", JSON.stringify(payload));
+      }
       toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
       setInventFormModal(false);
 
@@ -284,11 +286,11 @@ export default function Detail() {
     } else {
       setAssetInfo(null);
     }
-  }, [inventFormModal, inventForm.values.assetId]);
-  useEffect(() => {
-    fetchData();
-  }, [labId, searchParams.get("id")]);
-  const fetchData = async () => {
+  }, [inventFormModal, inventForm.values.assetId, invent]);
+
+  const idFromParams = searchParams.get("id");
+
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       let response;
@@ -360,7 +362,11 @@ export default function Detail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [labId, isNew, searchParams, formik, session?.user.person_id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
@@ -1122,6 +1128,14 @@ export default function Detail() {
         </div>
       </Dialog>
     </Content>
+  );
+}
+
+export default function Detail() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center">กำลังโหลด...</div>}>
+      <PlanAssetContent />
+    </Suspense>
   );
 }
 

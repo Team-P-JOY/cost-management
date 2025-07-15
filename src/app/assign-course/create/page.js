@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, Suspense } from "react";
 import axios from "axios";
 import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,7 +16,8 @@ import {
   FiSearch,
   FiXCircle,
 } from "react-icons/fi";
-export default function Detail() {
+
+function DetailContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -42,7 +43,7 @@ export default function Detail() {
     } else {
       setFilterData(data.course.filter((item) => item.type === selected));
     }
-  }, [selected]);
+  }, [selected, data.course]);
 
   useEffect(() => {}, [filterData]);
 
@@ -75,7 +76,7 @@ export default function Detail() {
       }
     };
     fetchData();
-  }, [facultyId, schId]);
+  }, [facultyId, schId, selected]);
 
   const handleCreate = async (courseid) => {
     const term = data.term.find((item) => item.schId == schId);
@@ -126,7 +127,7 @@ export default function Detail() {
     }
 
     return result;
-  }, [data, search, sort, selected]);
+  }, [search, sort, filterData]);
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
     { name: "กำหนดรายวิชา", link: "/assign-course" },
@@ -170,8 +171,7 @@ export default function Detail() {
         <div className="flex justify-center">
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => handleCreate(item.courseid)}
-          >
+            onClick={() => handleCreate(item.courseid)}>
             <FiCheckCircle className="w-4 h-4" />
             เลือก
           </button>
@@ -183,8 +183,7 @@ export default function Detail() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
-    >
+      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
@@ -203,9 +202,9 @@ export default function Detail() {
                   `/assign-course/create?facultyId=${item.value}&schId=${schId}`
                 );
               }}
-              options={data.faculty.map(item => ({
+              options={data.faculty.map((item) => ({
                 value: item.facultyid,
-                label: item.facultyname
+                label: item.facultyname,
               }))}
               placeholder="เลือกสำนักวิชา"
               className={className.select}
@@ -223,9 +222,9 @@ export default function Detail() {
                   `/assign-course/create?facultyId=${facultyId}&schId=${item.value}`
                 );
               }}
-              options={data.term.map(item => ({
+              options={data.term.map((item) => ({
                 value: item.schId,
-                label: `${item.semester}/${item.acadyear}`
+                label: `${item.semester}/${item.acadyear}`,
               }))}
               placeholder="เลือกภาคการศึกษา"
               className={className.select}
@@ -241,8 +240,7 @@ export default function Detail() {
               ].map((option) => (
                 <label
                   key={option.id}
-                  className="flex items-center space-x-2 cursor-pointer"
-                >
+                  className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="radio"
                     name="options"
@@ -292,13 +290,20 @@ export default function Detail() {
           <button
             type="button"
             className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
-            onClick={() => router.back()}
-          >
+            onClick={() => router.back()}>
             ย้อนกลับ
           </button>
         </div>
       </div>
     </Content>
+  );
+}
+
+export default function Detail() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <DetailContent />
+    </Suspense>
   );
 }
 

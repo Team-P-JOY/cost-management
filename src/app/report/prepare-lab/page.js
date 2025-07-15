@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiInfo } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 import axios from "axios";
 
-export default function List() {
+function ListContent() {
   const searchParams = useSearchParams();
   const breadcrumb = [
-    { name: "รายงาน" },    {
+    { name: "รายงาน" },
+    {
       name: "รายงานแผนการให้บริการห้องปฎิบัติการ",
       link: "/report/assign-course",
     },
@@ -73,7 +74,7 @@ export default function List() {
       width: "100",
       render: (item) => (
         <div>
-         {item.semester}/{item.acadyear}
+          {item.semester}/{item.acadyear}
         </div>
       ),
     },
@@ -137,8 +138,7 @@ export default function List() {
             className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressDetail(item.labId);
-            }}
-          >
+            }}>
             <FiInfo className="w-4 h-4" />
             รายละเอียด
           </button>
@@ -150,8 +150,7 @@ export default function List() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title="รายงานแผนการให้บริการห้องปฎิบัติการ"
-    >
+      title="รายงานแผนการให้บริการห้องปฎิบัติการ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between">
           <div>
@@ -170,8 +169,7 @@ export default function List() {
                     `/report/assign-course?schId=${schId}&labgroupId=${e.target.value}`
                   );
                 }}
-                className="block px-4 py-2 border rounded-md dark:bg-gray-800"
-              >
+                className="block px-4 py-2 border rounded-md dark:bg-gray-800">
                 <option value="">แสดงทุกห้องปฎิบัติการ</option>
                 {data.labgroup.map((item) => (
                   <option key={item.labgroupId} value={item.labgroupId}>
@@ -190,12 +188,11 @@ export default function List() {
                     `/report/assign-course?schId=${e.target.value}&labgroupId=${labgroupId}`
                   );
                 }}
-                className="block px-4 py-2 border rounded-md dark:bg-gray-800"
-              >
+                className="block px-4 py-2 border rounded-md dark:bg-gray-800">
                 <option value="">แสดงทุกภาคการศึกษา</option>
                 {data.semester.map((item) => (
                   <option key={item.schId} value={item.schId}>
-                     {item.semester}/{item.acadyear}
+                    {item.semester}/{item.acadyear}
                   </option>
                 ))}
               </select>
@@ -212,6 +209,14 @@ export default function List() {
         </div>
       </div>
     </Content>
+  );
+}
+
+export default function List() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <ListContent />
+    </Suspense>
   );
 }
 

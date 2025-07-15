@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 // import { useRouter } from "next/navigation";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
@@ -13,7 +13,7 @@ import { FcCheckmark } from "react-icons/fc";
 import { FcCancel } from "react-icons/fc";
 // import { c } from "framer-motion/dist/types.d-6pKw1mTI";
 
-export default function List() {
+function ListContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idType = searchParams.get("idType");
@@ -90,7 +90,7 @@ export default function List() {
     }
 
     fetchData();
-  }, []);
+  }, [idType]);
 
   const meta = [
     {
@@ -271,5 +271,13 @@ export default function List() {
         </div>
       </div>
     </Content>
+  );
+}
+
+export default function List() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <ListContent />
+    </Suspense>
   );
 }

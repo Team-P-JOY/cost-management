@@ -36,7 +36,6 @@ import {
 export default function Page() {
   const { data: session } = useSession();
   const userlogin = session?.user.userRole;
-
   const userloginId = session?.user.person_id;
   let breadcrumb = [];
   switch (userlogin) {
@@ -88,18 +87,26 @@ export default function Page() {
   const searchParams = useSearchParams();
   const labId = searchParams.get("labId") || "";
 
+  // State สำหรับ modal คัดลอก
+  const [selectedSchId, setSelectedSchId] = useState("");
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [availableSchools, setAvailableSchools] = useState([]);
+  const [availableCourses, setAvailableCourses] = useState([]);
+  const [copyLabjobData, setCopyLabjobData] = useState([]);
+  const [loadingCopyData, setLoadingCopyData] = useState(false);
+
   const meta2 = [
     {
       key: "รหัสวิชา",
       content: "ใบงานเตรียมปฏิบัติการ",
       className: "text-left",
-      render: (item) => item.subjectCode,
+      render: (item) => item.labjobTitle,
     },
     {
       key: "subjectName",
       content: "หัวหน้าบทปฏิบัติการ",
       className: "text-left",
-      render: (item) => item.subjectName,
+      render: (item) => item.fullname,
     },
   ];
 
@@ -123,9 +130,87 @@ export default function Page() {
   };
   const _onCloseInventForm = (status) => {
     setCopyLabjob(status);
+    if (!status) {
+      // Reset state เมื่อปิด modal
+      setSelectedSchId("");
+      setSelectedCourseId("");
+      setAvailableCourses([]);
+      setCopyLabjobData([]);
+    }
   };
-  const _onPressAddCoopy = () => {
+
+  const _onPressAddCoopy = async () => {
     setCopyLabjob(true);
+    // โหลดข้อมูลปีการศึกษา
+    try {
+      const response = await axios.get("/api/academic");
+      if (response.data.success) {
+        const schools = response.data.data || [];
+        setAvailableSchools(Array.isArray(schools) ? schools : []);
+      } else {
+        setAvailableSchools([]);
+      }
+    } catch (error) {
+      console.error("Error loading school years:", error);
+      setAvailableSchools([]);
+    }
+  };
+
+  // ฟังก์ชันสำหรับเมื่อเปลี่ยนปีการศึกษา
+  const handleSchoolYearChange = async (schId) => {
+    setSelectedSchId(schId);
+    setSelectedCourseId("");
+    setCopyLabjobData([]);
+
+    if (schId) {
+      try {
+        const response = await axios.get("/api/assign-course", {
+          params: { schId },
+        });
+        if (response.data.success) {
+          const courses = response.data.data || [];
+          setAvailableCourses(Array.isArray(courses) ? courses : []);
+        } else {
+          setAvailableCourses([]);
+        }
+      } catch (error) {
+        console.error("Error loading courses:", error);
+        setAvailableCourses([]);
+      }
+    } else {
+      setAvailableCourses([]);
+    }
+  };
+
+  // ฟังก์ชันสำหรับเมื่อเปลี่ยนรายวิชา
+  const handleCourseChange = async (labId) => {
+    setSelectedCourseId(labId);
+
+    if (labId && selectedSchId) {
+      setLoadingCopyData(true);
+      try {
+        const response = await axios.get("/api/labjob", {
+          params: {
+            labId: labId,
+          },
+        });
+        console.log("response", response.data);
+
+        if (response.data.labjoblist) {
+          const labjobs = response.data.labjoblist || [];
+          setCopyLabjobData(Array.isArray(labjobs) ? labjobs : []);
+        } else {
+          setCopyLabjobData([]);
+        }
+      } catch (error) {
+        console.error("Error loading labjob data:", error);
+        setCopyLabjobData([]);
+      } finally {
+        setLoadingCopyData(false);
+      }
+    } else {
+      setCopyLabjobData([]);
+    }
   };
   const _onPressEdit = (labjobId) => {
     if (!labjobId) {
@@ -222,15 +307,17 @@ export default function Page() {
     },
   ];
   let button;
-  button = (
-    <button
-      className="group flex items-center gap-2 px-4 py-2 text-white text-sm bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-      onClick={() => _onPressAdd(labId)}
-      disabled={!labId}>
-      <FiPlus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
-      <span className="font-medium">เพิ่มใบงานเตรียมปฏิบัติการ</span>
-    </button>
-  );
+  if (userlogin !== "หัวหน้าบทปฏิบัติการ") {
+    button = (
+      <button
+        className="group flex items-center gap-2 px-4 py-2 text-white text-sm bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        onClick={() => _onPressAdd(labId)}
+        disabled={!labId}>
+        <FiPlus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
+        <span className="font-medium">เพิ่มใบงานเตรียมปฏิบัติการ</span>
+      </button>
+    );
+  }
 
   let button2;
   button2 = (
@@ -406,7 +493,7 @@ export default function Page() {
               </div>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 p-2">
               <TableList
                 meta={meta}
                 data={labjob}
@@ -458,14 +545,16 @@ export default function Page() {
                     </label>
                     <select
                       name="schId"
-                      defaultValue=""
+                      value={selectedSchId}
+                      onChange={(e) => handleSchoolYearChange(e.target.value)}
                       className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                      <option value="" disabled>
-                        กรุณาเลือกปีการศึกษา
-                      </option>
-                      <option>2/2567</option>
-                      <option>1/2567</option>
-                      <option>2/2566</option>
+                      <option value="">กรุณาเลือกปีการศึกษา</option>
+                      {Array.isArray(availableSchools) &&
+                        availableSchools.map((school) => (
+                          <option key={school.schId} value={school.schId}>
+                            {school.semester}/{school.acadyear}
+                          </option>
+                        ))}
                     </select>
                   </div>
 
@@ -475,43 +564,86 @@ export default function Page() {
                       รายวิชา
                     </label>
                     <select
-                      className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                      defaultValue="">
-                      <option value="" disabled>
-                        กรุณาเลือกรายวิชา
+                      value={selectedCourseId}
+                      onChange={(e) => handleCourseChange(e.target.value)}
+                      disabled={!selectedSchId}
+                      className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <option value="">
+                        {selectedSchId
+                          ? "กรุณาเลือกรายวิชา"
+                          : "เลือกปีการศึกษาก่อน"}
                       </option>
-                      <option>
-                        BIO61-212 ปฏิบัติการจุลชีววิทยา Microbiology Laboratory
-                      </option>
-                      <option>MAC62-241 สถิติเชิงอนุมานเบื้องต้น</option>
-                      <option>CHM61-241 หลักเคมีวิเคราะห์</option>
+                      {Array.isArray(availableCourses) &&
+                        availableCourses.map((course) => (
+                          <option key={course.labId} value={course.labId}>
+                            {course.coursecode} {course.coursename}
+                          </option>
+                        ))}
                     </select>
                   </div>
                 </div>
 
                 {/* Table Section */}
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                    รายการใบงานที่สามารถคัดลอกได้
-                  </h4>
-                  <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-600">
-                    <TableList
-                      meta={meta2}
-                      data={copylabjob}
-                      loading={loading}
-                      exports={false}
-                      showOptions={false}
-                    />
+                {selectedSchId && selectedCourseId ? (
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      รายการใบงานที่สามารถคัดลอกได้
+                    </h4>
+                    <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-600 p-2">
+                      {loadingCopyData ? (
+                        <div className="flex items-center justify-center p-8">
+                          <div className="text-center">
+                            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                            <p className="text-gray-500 dark:text-gray-400">
+                              กำลังโหลดข้อมูล...
+                            </p>
+                          </div>
+                        </div>
+                      ) : copyLabjobData.length > 0 ? (
+                        <TableList
+                          meta={meta2}
+                          data={copyLabjobData}
+                          loading={false}
+                          exports={false}
+                          showOptions={false}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center p-8">
+                          <div className="text-center">
+                            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                            <p className="text-gray-500 dark:text-gray-400">
+                              ไม่พบใบงานในรายวิชานี้
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
+                    <div className="flex items-center justify-center p-8">
+                      <div className="text-center">
+                        <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-500 dark:text-gray-400">
+                          กรุณาเลือกปีการศึกษาและรายวิชาเพื่อแสดงรายการใบงาน
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Modal Footer */}
                 <div className="flex justify-center gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
                   <button
                     type="submit"
                     onClick={() => _onCloseInventForm(false)}
-                    className="flex items-center gap-2 px-6 py-3 text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium">
+                    disabled={
+                      !selectedSchId ||
+                      !selectedCourseId ||
+                      copyLabjobData.length === 0
+                    }
+                    className="flex items-center gap-2 px-6 py-3 text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
                     <FiCopy className="w-4 h-4" />
                     คัดลอกข้อมูล
                   </button>

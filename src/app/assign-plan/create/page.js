@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiCheckCircle } from "react-icons/fi";
@@ -8,7 +8,7 @@ import { FiCheckCircle } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 
-export default function Detail() {
+function DetailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -156,6 +156,14 @@ export default function Detail() {
         </div>
       </div>
     </Content>
+  );
+}
+
+export default function Detail() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <DetailContent />
+    </Suspense>
   );
 }
 

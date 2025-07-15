@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import Content from "@/components/Content";
@@ -17,7 +17,7 @@ import {
   BookOpen,
 } from "lucide-react";
 
-export default function Page() {
+function PageContent() {
   const router = useRouter(); // Get the router object
   const { data: session } = useSession();
   const labgroupName = session?.user.userInfo.labgroupName;
@@ -73,15 +73,16 @@ export default function Page() {
           let labData = [];
           if (userlogin === "แอดมิน") {
             labData = response.data.data;
-          } else if (
-            userlogin === "หัวหน้าฝ่าย" ||
-            userlogin === "ผู้ประสานงานรายวิชา"
-          ) {
+          } else if (userlogin === "หัวหน้าฝ่าย") {
             labData = response.data.data.filter((item) => {
               return (
                 item.userCreated == userIdlogin ||
                 item.labgroupName === labgroupName
               );
+            });
+          } else if (userlogin === "ผู้ประสานงานรายวิชา") {
+            labData = response.data.data.filter((item) => {
+              return String(item.personId) === String(userIdlogin);
             });
           }
           setLab(labData || []); // Access `data.data`
@@ -100,7 +101,7 @@ export default function Page() {
     }
 
     fetchData();
-  }, [schId]);
+  }, [schId, labgroupName, userIdlogin, userlogin]);
 
   const meta = [
     {
@@ -332,7 +333,7 @@ export default function Page() {
               </div>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 p-2">
               <TableList
                 meta={meta}
                 data={lab}
@@ -346,6 +347,15 @@ export default function Page() {
     </Content>
   );
 }
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <PageContent />
+    </Suspense>
+  );
+}
+
 const className = {
   label:
     "block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",

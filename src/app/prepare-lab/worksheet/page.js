@@ -1,7 +1,7 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import axios from "axios";
 import Content from "@/components/Content";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
@@ -26,7 +26,7 @@ import {
  * @property {number} quantity
  */
 
-export default function Page() {
+function PageContent() {
   const { data: session } = useSession();
 
   const userCreated = session?.user.person_id;
@@ -378,5 +378,13 @@ export default function Page() {
         </div>
       </div>
     </Content>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <PageContent />
+    </Suspense>
   );
 }

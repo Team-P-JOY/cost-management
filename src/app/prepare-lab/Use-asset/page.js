@@ -1,5 +1,5 @@
 "use client";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, Suspense } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import {
@@ -23,7 +23,7 @@ import * as Yup from "yup";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import TableList from "@/components/TableList";
 import AutocompleteSelect2 from "@/components/AutocompleteSelect2";
-export default function Detail() {
+function DetailContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -32,10 +32,10 @@ export default function Detail() {
 
   const labId = idParam === "new" ? "new" : parseInt(idParam, 10);
   const isNew = labId === "new";
-  
+
   // Debug logs
   console.log("URL Parameters:", { idParam, labjobId, labId, isNew });
-  
+
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("tab1");
   const [Assetbroken, setAssetbroken] = useState([]);
@@ -126,12 +126,11 @@ export default function Detail() {
       values.unitName = invent.find(
         (inv) => inv.assetId === parseInt(values.assetId)
       )?.unitName;
-      
+
       values.invgroupName = invent.find(
         (inv) => inv.assetId === parseInt(values.assetId)
       )?.invgroupName;
 
-     
       console.log("Values after asset info assignment:", values);
 
       if (values.type === 1) {
@@ -278,12 +277,10 @@ export default function Detail() {
 
       // Check the response from the API
       if (response.data.success) {
-        
         toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
         fetchData();
         return response.data; // Return the response data for further use
       } else {
-        
         toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
         fetchData();
         return response.data;
@@ -296,11 +293,11 @@ export default function Detail() {
 
   const formik = useFormik({
     initialValues: {
-      labjobAssetId: "", 
+      labjobAssetId: "",
     },
     onSubmit: async (values) => {
       // ตรวจสอบค่า labjobAssetId
-      const isNew = !values.labjobAssetId; 
+      const isNew = !values.labjobAssetId;
       console.log(
         isNew
           ? "Adding new asset with values:"
@@ -309,7 +306,7 @@ export default function Detail() {
       );
 
       const result = await saveLabAsset(values, isNew); // ส่งข้อมูลไปยัง API
-      
+
       if (result.success) {
         await router.push(
           `/prepare-lab/Use-asset?id=${searchParams.get(
@@ -569,8 +566,13 @@ export default function Detail() {
         }));
       }
       try {
-        console.log("Deleting asset with parameters:", { id, labId, labjobId, type });
-        
+        console.log("Deleting asset with parameters:", {
+          id,
+          labId,
+          labjobId,
+          type,
+        });
+
         // ลบข้อมูลใน backend
         await axios.delete(
           `/api/use-asset?id=${id}&userId=${session?.user.person_id}`
@@ -1801,6 +1803,14 @@ export default function Detail() {
         </div>
       </Dialog>
     </Content>
+  );
+}
+
+export default function Detail() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <DetailContent />
+    </Suspense>
   );
 }
 

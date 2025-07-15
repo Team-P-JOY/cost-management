@@ -44,6 +44,7 @@ const roleList = [
 export default function Detail() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
+  const userlogin = session?.user.roleName;
   const { id } = useParams();
   const router = useRouter();
   const isNew = id === "new";
@@ -373,6 +374,13 @@ export default function Detail() {
   }, [id]);
   // เมื่อ formik.values.labgroupId ถูกตั้งค่าแล้ว ให้เรียก handleChangeLabgroup เพื่ออัปเดต user
   useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     if (formik.values.labgroupId && data?.users) {
       const selectedUser = data.users.filter(
         (item) => item.labgroupId == formik.values.labgroupId
@@ -386,10 +394,17 @@ export default function Detail() {
       }
     }
   }, [formik.values.labgroupId]);
+  let linkBreadcrumb = [];
+  if (userlogin !== "ผู้ดูแลระบบ" || userlogin !== "หัวหน้าฝ่าย") {
+    linkBreadcrumb = ["/assign-plan"];
+  } else {
+    linkBreadcrumb = ["/assign-course"];
+  }
+  // ถ้า userlogin ไม่ใช่ผู้ดูแลระบบ ให้ลิงก์ไปยังแผนการให้บริการห้องปฎิบัติการ
 
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
-    { name: "กำหนดรายวิชา", link: "/assign-course" },
+    { name: "กำหนดรายวิชา", link: { linkBreadcrumb } },
     { name: isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล" },
   ];
 
@@ -552,17 +567,17 @@ export default function Detail() {
       breadcrumb={breadcrumb}
       title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
       <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6">
+        <div className="relative bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-              <FiBook className="w-6 h-6" />
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <FiBook className="w-6 h-6 text-blue-600" />
             </div>
             <div>
               <h3 className="text-xl font-bold">
                 {isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล"}
               </h3>
               {!isNew && data.course && (
-                <p className="text-blue-100 text-sm mt-1">
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
                   {data.course.coursecode} {data.course.coursename}
                 </p>
               )}
@@ -580,19 +595,20 @@ export default function Detail() {
             </p>
           </div>
         ) : (
-          <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+          <div className="p-6">
             <form onSubmit={formik.handleSubmit}>
               <div className="w-full">
-                <div className="flex bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                {/* Clean Tab Navigation */}
+                <div className="flex border-b border-gray-200 dark:border-gray-600 mb-6">
                   {tabs.map((tab) => (
                     <button
                       type="button"
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex-1 flex justify-center items-center gap-2 px-6 py-4 font-medium text-sm transition-all duration-200 border-b-2 ${
+                      className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-all duration-200 border-b-2 ${
                         activeTab === tab.id
-                          ? "text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                          : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300"
+                          ? "text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400"
+                          : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
                       }`}>
                       {tab.id === "tab1" && <FiBook className="w-4 h-4" />}
                       {tab.id === "tab2" && <FiUsers className="w-4 h-4" />}
@@ -601,274 +617,276 @@ export default function Detail() {
                   ))}
                 </div>
 
-                <div>
+                <div className="space-y-6">
                   {activeTab === "tab1" && (
                     <>
-                      <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                        <div className="sm:col-span-12">
-                          <h3 className="font-xl font-semibold">
-                            {data.course?.coursecode} {data.course?.coursename}
-                          </h3>
-                        </div>
-                        <div className="sm:col-span-4">
-                          <i>สำนักวิชา</i> : {data.course?.facultyname}
-                        </div>
-                        <div className="sm:col-span-8">
-                          <i>ภาคการศึกษา</i> : {data.class?.[0]?.semester}/
-                          {data.class?.[0]?.acadyear}
-                        </div>
-                        <div className="sm:col-span-4">
-                          <i>จำนวนกลุ่ม</i> : {data.class?.length} กลุ่ม
-                        </div>
-                        <div className="sm:col-span-4">
-                          <i>จำนวนนักศึกษา</i> :{" "}
-                          {data.class?.reduce(
-                            (total, item) => total + item.totalseat,
-                            0
-                          )}{" "}
-                          คน
-                        </div>
-                        <div className="sm:col-span-12">
-                          <i>รายละเอียด</i> : {data.course?.description1}
+                      {/* Course Information Card */}
+                      <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                          {data.course?.coursecode} {data.course?.coursename}
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div className="flex">
+                            <span className="text-gray-600 dark:text-gray-400 w-32">
+                              สำนักวิชา:
+                            </span>
+                            <span className="text-gray-900 dark:text-gray-100">
+                              {data.course?.facultyname}
+                            </span>
+                          </div>
+                          <div className="flex">
+                            <span className="text-gray-600 dark:text-gray-400 w-32">
+                              ภาคการศึกษา:
+                            </span>
+                            <span className="text-gray-900 dark:text-gray-100">
+                              {data.class?.[0]?.semester}/
+                              {data.class?.[0]?.acadyear}
+                            </span>
+                          </div>
+                          <div className="flex">
+                            <span className="text-gray-600 dark:text-gray-400 w-32">
+                              จำนวนกลุ่ม:
+                            </span>
+                            <span className="text-gray-900 dark:text-gray-100">
+                              {data.class?.length} กลุ่ม
+                            </span>
+                          </div>
+                          <div className="flex">
+                            <span className="text-gray-600 dark:text-gray-400 w-32">
+                              จำนวนนักศึกษา:
+                            </span>
+                            <span className="text-gray-900 dark:text-gray-100">
+                              {data.class?.reduce(
+                                (total, item) => total + item.totalseat,
+                                0
+                              )}{" "}
+                              คน
+                            </span>
+                          </div>
                         </div>
 
-                        <div className="sm:col-span-12">
-                          <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-                            <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                              <div className="sm:col-span-6">
-                                <label className={className.label}>
-                                  กลุ่มห้องปฎิบัติการ
-                                </label>
-                                <select
-                                  name="labgroupId"
-                                  value={formik.values.labgroupId || ""}
-                                  onChange={(event) => {
-                                    _handleChangeLabgroup(event);
-                                    formik.handleChange(event);
-                                  }}
-                                  className={`${className.select} ${
-                                    formik.touched.labgroupId &&
-                                    formik.errors.labgroupId
-                                      ? "border-red-500"
-                                      : ""
-                                  }`}>
-                                  <option value="" disabled>
-                                    เลือกกลุ่มห้องปฎิบัติการ
-                                  </option>
-                                  {data.labgroup.map((labgroup) => (
-                                    <option
-                                      key={labgroup.labgroupId}
-                                      value={labgroup.labgroupId}>
-                                      {labgroup.labgroupName}
-                                    </option>
-                                  ))}
-                                </select>
-                                {formik.touched.labgroupId &&
-                                  formik.errors.labgroupId && (
-                                    <p className="mt-1 text-sm text-red-500">
-                                      {formik.errors.labgroupId}
-                                    </p>
-                                  )}
-                              </div>
-                              <div className="sm:col-span-6">
-                                <label className={className.label}>
-                                  ผู้ประสานงานรายวิชา
-                                </label>
-                                <select
-                                  name="personId"
-                                  value={formik.values.personId || ""}
-                                  onChange={formik.handleChange}
-                                  className={`${className.select} ${
-                                    formik.touched.personId &&
-                                    formik.errors.personId
-                                      ? "border-red-500"
-                                      : ""
-                                  }`}>
-                                  <option value="" disabled>
-                                    {user.length > 0
-                                      ? "เลือกผู้รับผิดชอบหลัก"
-                                      : "- ไม่มีข้อมูล -"}
-                                  </option>
-                                  {user.map((user, index) => (
-                                    <option
-                                      key={user.personId + index}
-                                      value={user.personId}>
-                                      {user.fullname} ({user.roleName})
-                                    </option>
-                                  ))}
-                                </select>
-                                {formik.touched.personId &&
-                                  formik.errors.personId && (
-                                    <p className="mt-1 text-sm text-red-500">
-                                      {formik.errors.personId}
-                                    </p>
-                                  )}
-                              </div>
+                        {data.course?.description1 && (
+                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                            <span className="text-gray-600 dark:text-gray-400 text-sm">
+                              รายละเอียด:
+                            </span>
+                            <p className="text-gray-900 dark:text-gray-100 mt-1">
+                              {data.course.description1}
+                            </p>
+                          </div>
+                        )}
+                      </div>
 
-                              <div className="sm:col-span-4">
-                                <label className={className.label}>
-                                  จำนวนห้อง LAB ที่เปิดบริการ
-                                </label>
+                      {/* Form Fields Card */}
+                      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className={className.label}>
+                              กลุ่มห้องปฎิบัติการ
+                            </label>
+                            <select
+                              name="labgroupId"
+                              value={formik.values.labgroupId || ""}
+                              onChange={(event) => {
+                                _handleChangeLabgroup(event);
+                                formik.handleChange(event);
+                              }}
+                              className={`${className.select} ${
+                                formik.touched.labgroupId &&
+                                formik.errors.labgroupId
+                                  ? "border-red-500"
+                                  : ""
+                              }`}>
+                              <option value="" disabled>
+                                เลือกกลุ่มห้องปฎิบัติการ
+                              </option>
+                              {data.labgroup.map((labgroup) => (
+                                <option
+                                  key={labgroup.labgroupId}
+                                  value={labgroup.labgroupId}>
+                                  {labgroup.labgroupName}
+                                </option>
+                              ))}
+                            </select>
+                            {formik.touched.labgroupId &&
+                              formik.errors.labgroupId && (
+                                <p className="mt-1 text-sm text-red-500">
+                                  {formik.errors.labgroupId}
+                                </p>
+                              )}
+                          </div>
 
-                                <input
-                                  type="number"
-                                  name="labroom"
-                                  value={formik.values.labroom || ""}
-                                  onChange={formik.handleChange}
-                                  className={`${className.input} ${
-                                    formik.touched.labroom &&
-                                    formik.errors.labroom
-                                      ? "border-red-500"
-                                      : ""
-                                  }`}
-                                />
-                                {formik.touched.labroom &&
-                                  formik.errors.labroom && (
-                                    <p className="mt-1 text-sm text-red-500">
-                                      {formik.errors.labroom}
-                                    </p>
-                                  )}
-                              </div>
+                          <div>
+                            <label className={className.label}>
+                              ผู้ประสานงานรายวิชา
+                            </label>
+                            <select
+                              name="personId"
+                              value={formik.values.personId || ""}
+                              onChange={formik.handleChange}
+                              className={`${className.select} ${
+                                formik.touched.personId &&
+                                formik.errors.personId
+                                  ? "border-red-500"
+                                  : ""
+                              }`}>
+                              <option value="" disabled>
+                                {user.length > 0
+                                  ? "เลือกผู้รับผิดชอบหลัก"
+                                  : "- ไม่มีข้อมูล -"}
+                              </option>
+                              {user.map((user, index) => (
+                                <option
+                                  key={user.personId + index}
+                                  value={user.personId}>
+                                  {user.fullname} ({user.roleName})
+                                </option>
+                              ))}
+                            </select>
+                            {formik.touched.personId &&
+                              formik.errors.personId && (
+                                <p className="mt-1 text-sm text-red-500">
+                                  {formik.errors.personId}
+                                </p>
+                              )}
+                          </div>
 
-                              {/* <div className="sm:col-span-4">
-                              <label className={className.label}>
-                                จำนวนกลุ่มต่อห้อง
-                              </label>
-                              <input
-                                type="number"
-                                name="labgroupNum"
-                                value={formik.values.labgroupNum || ""}
-                                onChange={formik.handleChange}
-                                className={`${className.input} ${
-                                  formik.touched.labgroupNum &&
-                                  formik.errors.labgroupNum
-                                    ? "border-red-500"
-                                    : ""
-                                }`}
-                              />
-                              {formik.touched.labgroupNum &&
-                                formik.errors.labgroupNum && (
-                                  <p className="mt-1 text-sm text-red-500">
-                                    {formik.errors.labgroupNum}
-                                  </p>
-                                )}
-                            </div> */}
+                          <div>
+                            <label className={className.label}>
+                              จำนวนห้อง LAB ที่เปิดบริการ
+                            </label>
+                            <input
+                              type="number"
+                              name="labroom"
+                              value={formik.values.labroom || ""}
+                              onChange={formik.handleChange}
+                              className={`${className.input} ${
+                                formik.touched.labroom && formik.errors.labroom
+                                  ? "border-red-500"
+                                  : ""
+                              }`}
+                            />
+                            {formik.touched.labroom &&
+                              formik.errors.labroom && (
+                                <p className="mt-1 text-sm text-red-500">
+                                  {formik.errors.labroom}
+                                </p>
+                              )}
+                          </div>
 
-                              <div className="sm:col-span-4">
-                                <label className={className.label}>
-                                  รวมจำนวนชั่วโมงเรียน/ภาคการศึกษา
-                                </label>
-                                <input
-                                  type="number"
-                                  name="hour"
-                                  value={formik.values.hour || ""}
-                                  onChange={formik.handleChange}
-                                  className={`${className.input} ${
-                                    formik.touched.hour && formik.errors.hour
-                                      ? "border-red-500"
-                                      : ""
-                                  }`}
-                                />
-                                {formik.touched.hour && formik.errors.hour && (
-                                  <p className="mt-1 text-sm text-red-500">
-                                    {formik.errors.hour}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
+                          <div>
+                            <label className={className.label}>
+                              รวมจำนวนชั่วโมงเรียน/ภาคการศึกษา
+                            </label>
+                            <input
+                              type="number"
+                              name="hour"
+                              value={formik.values.hour || ""}
+                              onChange={formik.handleChange}
+                              className={`${className.input} ${
+                                formik.touched.hour && formik.errors.hour
+                                  ? "border-red-500"
+                                  : ""
+                              }`}
+                            />
+                            {formik.touched.hour && formik.errors.hour && (
+                              <p className="mt-1 text-sm text-red-500">
+                                {formik.errors.hour}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
-                      <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+
+                      {/* Action Buttons */}
+                      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-600">
                         <button
                           type="button"
-                          className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
+                          className="px-6 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
                           onClick={() => router.back()}>
                           ยกเลิก
                         </button>
                         <button
                           type="submit"
-                          className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+                          className="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
                           บันทึกข้อมูล
                         </button>
                       </div>
                     </>
                   )}
                   {activeTab === "tab2" && (
-                    <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                      <div className="sm:col-span-12">
-                        <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-                          <div className="pb-4 border-gray-200 flex justify-between items-center">
-                            <div className="font-xl font-semibold inline">
-                              <span className="pe-2">ผู้รับผิดชอบ</span>
-                              <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
-                                {courseUser.length} รายการ
-                              </span>
-                            </div>
-                            <button
-                              type="button"
-                              className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                              onClick={() => _onPressAddUser()}>
-                              <FiPlus className="w-4 h-4" />
-                              เพิ่มใหม่
-                            </button>
-                          </div>
-                          <TableList
-                            exports={false}
-                            meta={[
-                              {
-                                content: "ผู้รับผิดชอบ",
-                                key: "fullname",
-                              },
-                              {
-                                content: "ตำแหน่งที่รับผิดชอบ",
-                                key: "roleId",
-                                render: (item) => (
-                                  <div>
-                                    {
-                                      roleList.find(
-                                        (role) =>
-                                          parseInt(role.roleId) === item.roleId
-                                      )?.roleName
-                                    }
-                                  </div>
-                                ),
-                              },
-                              {
-                                key: "labcourseUserId",
-                                content: "Action",
-                                width: "100",
-                                sort: false,
-
-                                render: (item) => (
-                                  <div className="flex gap-1">
-                                    <button
-                                      type="button"
-                                      className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                      onClick={() => {
-                                        _onPressEditUser(item.labcourseUserId);
-                                      }}>
-                                      <FiEdit className="w-4 h-4" />
-                                      แก้ไข
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                      onClick={() =>
-                                        _onPressDeleteUser(item.labcourseUserId)
-                                      }>
-                                      <FiTrash2 className="w-4 h-4" />
-                                      ลบ
-                                    </button>
-                                  </div>
-                                ),
-                              },
-                            ]}
-                            data={courseUser}
-                            loading={loading}
-                          />
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-6">
+                      <div className="flex justify-between items-center mb-6">
+                        <div>
+                          <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                            ผู้รับผิดชอบ
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {courseUser.length} รายการ
+                          </p>
                         </div>
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                          onClick={() => _onPressAddUser()}>
+                          <FiPlus className="w-4 h-4" />
+                          เพิ่มใหม่
+                        </button>
                       </div>
+                      <TableList
+                        exports={false}
+                        meta={[
+                          {
+                            content: "ผู้รับผิดชอบ",
+                            key: "fullname",
+                          },
+                          {
+                            content: "ตำแหน่งที่รับผิดชอบ",
+                            key: "roleId",
+                            render: (item) => (
+                              <div>
+                                {
+                                  roleList.find(
+                                    (role) =>
+                                      parseInt(role.roleId) === item.roleId
+                                  )?.roleName
+                                }
+                              </div>
+                            ),
+                          },
+                          {
+                            key: "labcourseUserId",
+                            content: "จัดการ",
+                            width: "140",
+                            sort: false,
+                            render: (item) => (
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  className="flex items-center gap-1 px-3 py-1.5 text-white text-xs bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                                  onClick={() => {
+                                    _onPressEditUser(item.labcourseUserId);
+                                  }}>
+                                  <FiEdit className="w-3 h-3" />
+                                  แก้ไข
+                                </button>
+                                <button
+                                  type="button"
+                                  className="flex items-center gap-1 px-3 py-1.5 text-white text-xs bg-red-600 hover:bg-red-700 rounded transition-colors"
+                                  onClick={() =>
+                                    _onPressDeleteUser(item.labcourseUserId)
+                                  }>
+                                  <FiTrash2 className="w-3 h-3" />
+                                  ลบ
+                                </button>
+                              </div>
+                            ),
+                          },
+                        ]}
+                        data={courseUser}
+                        loading={loading}
+                      />
                     </div>
                   )}
                 </div>
@@ -882,25 +900,22 @@ export default function Detail() {
         open={userFormModal}
         onClose={_onCloseUserForm}
         className="relative z-10">
-        <DialogBackdrop
-          transition
-          className="fixed inset-0 text-gray-900 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
-        />
-
+        <DialogBackdrop className="fixed inset-0 bg-gray-500/75 transition-opacity" />
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <DialogPanel
-              transition
-              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-full sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95">
+            <DialogPanel className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left shadow-xl transition-all sm:my-8 w-full sm:max-w-lg">
               {loadingUser ? (
                 <div className="p-6 text-center text-gray-500 dark:text-gray-400">
                   กำลังโหลดข้อมูล...
                 </div>
               ) : (
                 <form onSubmit={userForm.handleSubmit}>
-                  <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                      <div className="sm:col-span-12">
+                  <div className="px-6 pt-6 pb-4">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                      เพิ่มผู้รับผิดชอบ
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
                         <label className={className.label}>ผู้รับผิดชอบ</label>
                         <select
                           name="personId"
@@ -931,7 +946,7 @@ export default function Detail() {
                           )}
                       </div>
 
-                      <div className="sm:col-span-12">
+                      <div>
                         <label className={className.label}>
                           ตำแหน่งที่รับผิดชอบ
                         </label>
@@ -961,18 +976,17 @@ export default function Detail() {
                       </div>
                     </div>
                   </div>
-                  <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
-                    <button
-                      type="submit"
-                      className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto">
-                      ยืนยัน
-                    </button>
+                  <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-600">
                     <button
                       type="button"
-                      data-autofocus
                       onClick={() => _onCloseUserForm(false)}
-                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                      className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
                       ยกเลิก
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors">
+                      ยืนยัน
                     </button>
                   </div>
                 </form>

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, Suspense } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
@@ -19,7 +19,7 @@ import * as Yup from "yup";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import TableList from "@/components/TableList";
 
-export default function Detail() {
+function DetailContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const { id } = useParams();
@@ -199,7 +199,7 @@ export default function Detail() {
     } else {
       setAssetInfo(null);
     }
-  }, [inventForm.values.assetId]);
+  }, [inventForm.values.assetId, invent]);
 
   useEffect(() => {
     if (!isNew) {
@@ -288,7 +288,7 @@ export default function Detail() {
       };
       fetchData();
     }
-  }, [id]);
+  }, [id, formik, isNew, searchParams, session?.user.person_id]);
 
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
@@ -577,6 +577,14 @@ export default function Detail() {
         )}
       </div>
     </Content>
+  );
+}
+
+export default function Detail() {
+  return (
+    <Suspense fallback={<div>กำลังโหลด...</div>}>
+      <DetailContent />
+    </Suspense>
   );
 }
 

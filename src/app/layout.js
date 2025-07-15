@@ -19,6 +19,9 @@ export const metadata = {
   description: "สำหรับศูนย์เครื่องมือวิทยาศาสตร์",
 };
 
+// Force dynamic rendering since we're using server sessions
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({ children }) {
   let session = null;
 
@@ -39,8 +42,7 @@ export default async function RootLayout({ children }) {
         <link rel="icon" href="/logo.png" sizes="any" />
       </head>
       <body
-        className={`${sarabun.variable} antialiased bg-gray-100 dark:bg-gray-900 transition-colors duration-300 ease-in-out min-h-screen`}
-      >
+        className={`${sarabun.variable} antialiased bg-gray-100 dark:bg-gray-900 transition-colors duration-300 ease-in-out min-h-screen`}>
         <ThemeProvider>
           <CustomSessionProvider session={session}>
             <JWTErrorHandler />
