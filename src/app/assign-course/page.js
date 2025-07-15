@@ -32,6 +32,7 @@ function ListContent() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "asc" });
   const { data: session } = useSession();
+  const [mounted, setMounted] = useState(false);
   const labgroupName = session?.user.userInfo.labgroupName;
   const userlogin = session?.user.userRole;
   const userIdlogin = session?.user.person_id;
@@ -45,10 +46,17 @@ function ListContent() {
   const [reload, setReload] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [schId, setSchId] = useState(searchParams.get("schId") || "");
+  const [schId, setSchId] = useState("");
   const [showAddChildModal, setShowAddChildModal] = useState(false);
   const [selectedParentLabId, setSelectedParentLabId] = useState(null);
   const [expandedItems, setExpandedItems] = useState(new Set()); // สำหรับจัดการการแสดง/ซ่อนรายวิชาย่อย
+
+  // Handle client-side mounting to prevent hydration issues
+  useEffect(() => {
+    setMounted(true);
+    const initialSchId = searchParams.get("schId") || "";
+    setSchId(initialSchId);
+  }, [searchParams]);
 
   // ฟังก์ชันสำหรับ toggle การแสดง/ซ่อนรายวิชาย่อย
   const toggleExpanded = (labId) => {
@@ -94,6 +102,8 @@ function ListContent() {
   };
 
   useEffect(() => {
+    if (!mounted) return; // รอจน mounted เสร็จก่อน
+
     async function fetchData() {
       try {
         setLoading(true);
@@ -124,7 +134,7 @@ function ListContent() {
     }
 
     fetchData();
-  }, [reload, schId]);
+  }, [reload, schId, mounted]);
 
   const meta = [
     {
@@ -304,8 +314,9 @@ function ListContent() {
     },
   ];
   const processedData = useMemo(() => {
+    if (!mounted || !data?.data) return []; // ป้องกัน hydration mismatch
+
     console.log("Processing data...", data.data);
-    // if (!data || !data.data) return [];
     let result = [];
     if (userlogin === "แอดมิน") {
       result = data.data;
@@ -316,8 +327,8 @@ function ListContent() {
       result = data.data.filter((item) => {
         console.log("Filtered data:", item);
         return (
-          item.userCreated == userIdlogin &&
-          item.labgroupName === labgroupName &&
+          item.userCreated == userIdlogin ||
+          item.labgroupName === labgroupName ||
           item.personId === userIdlogin
         );
       });
@@ -346,7 +357,23 @@ function ListContent() {
     }
 
     return result;
-  }, [data, search, sort, labgroupName, userIdlogin, userlogin]);
+  }, [data, search, sort, labgroupName, userIdlogin, userlogin, mounted]);
+
+  // Early return ถ้ายังไม่ mounted เพื่อป้องกัน hydration mismatch
+  if (!mounted) {
+    return (
+      <Content
+        breadcrumb={breadcrumb}
+        title="แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
+        <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="p-12 text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-500 dark:text-gray-400">กำลังโหลด...</p>
+          </div>
+        </div>
+      </Content>
+    );
+  }
 
   return (
     <Content
@@ -377,11 +404,8 @@ function ListContent() {
                     setSchId(e.target.value);
                     router.push(`/assign-course?schId=${e.target.value}`);
                   }}
-                  className="block bg-white text-gray-800 px-2 py-1 border border-black rounded text-sm
-">
-                  <option value="" disabled>
-                    กรุณาเลือก
-                  </option>
+                  className="block bg-white text-gray-800 px-2 py-1 border border-black rounded text-sm">
+                  <option value="">กรุณาเลือก</option>
                   {data.semester.map((item) => (
                     <option key={item.schId} value={item.schId}>
                       {item.semester}/{item.acadyear}
@@ -414,31 +438,40 @@ function ListContent() {
             <div className="space-y-3">
               {/* Table Container */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden p-2">
-                <TableList
-                  meta={meta}
-                  data={processedData}
-                  loading={loading}
-                  disableSearch={true}
-                  customSearchSlot={
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="ค้นหารายวิชา..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-48 h-8 text-sm pr-8 pl-3 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white bg-white transition-all duration-200"
-                      />
-                      {search ? (
-                        <FiXCircle
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 w-4 h-4 cursor-pointer transition-colors"
-                          onClick={() => setSearch("")}
+                {mounted ? (
+                  <TableList
+                    meta={meta}
+                    data={processedData}
+                    loading={loading}
+                    disableSearch={true}
+                    customSearchSlot={
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="ค้นหารายวิชา..."
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          className="w-48 h-8 text-sm pr-8 pl-3 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white bg-white transition-all duration-200"
                         />
-                      ) : (
-                        <FiSearch className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      )}
-                    </div>
-                  }
-                />
+                        {search ? (
+                          <FiXCircle
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 w-4 h-4 cursor-pointer transition-colors"
+                            onClick={() => setSearch("")}
+                          />
+                        ) : (
+                          <FiSearch className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        )}
+                      </div>
+                    }
+                  />
+                ) : (
+                  <div className="p-12 text-center">
+                    <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      กำลังโหลดตาราง...
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

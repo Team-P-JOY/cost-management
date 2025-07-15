@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState, Suspense } from "react";
+import { use, useEffect, useState, useCallback, Suspense } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
@@ -201,10 +201,13 @@ function DetailContent() {
     }
   }, [inventForm.values.assetId, invent]);
 
+  const courseId = searchParams.get("courseId");
+  const schId = searchParams.get("schId");
+
   useEffect(() => {
-    if (!isNew) {
-      setLoading(true);
-      const fetchData = async () => {
+    const fetchData = async () => {
+      if (!isNew) {
+        setLoading(true);
         try {
           const response = await axios.get(`/api/assign-course?id=${id}`);
           const data = response.data;
@@ -237,23 +240,20 @@ function DetailContent() {
               type2: data.labasset?.filter((item) => item.type === 2) || [],
               type3: data.labasset?.filter((item) => item.type === 3) || [],
             });
-
-            setLoading(false);
           }
         } catch (err) {
           console.error("❌ Error fetching data:", err);
           toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
+        } finally {
+          setLoading(false);
         }
-      };
-      fetchData();
-    } else {
-      setLoading(true);
-      const fetchData = async () => {
+      } else {
+        setLoading(true);
         try {
           const response = await axios.get(`/api/assign-course`, {
             params: {
-              courseId: searchParams.get("courseId"),
-              schId: searchParams.get("schId"),
+              courseId: courseId,
+              schId: schId,
             },
           });
           const data = response.data;
@@ -268,7 +268,7 @@ function DetailContent() {
             formik.setValues({
               courseid: data.course?.courseid,
               labgroupId: "",
-              schId: searchParams.get("schId"),
+              schId: schId,
               acadyear: data.class?.[0]?.acadyear,
               semester: data.class?.[0]?.semester,
               section: data.class?.length,
@@ -278,17 +278,19 @@ function DetailContent() {
               personId: "",
               userId: session?.user.person_id,
             });
-
-            setLoading(false);
           }
         } catch (err) {
           console.error("❌ Error fetching data:", err);
           toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
+        } finally {
+          setLoading(false);
         }
-      };
-      fetchData();
-    }
-  }, [id, formik, isNew, searchParams, session?.user.person_id]);
+      }
+    };
+
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isNew, session?.user.person_id, courseId, schId]);
 
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
@@ -366,12 +368,12 @@ function DetailContent() {
       } else if (type === 2) {
         setLabasset((prevLabasset) => ({
           ...prevLabasset,
-          type2: prevLabasset.type1.filter((item) => item.labassetId !== id),
+          type2: prevLabasset.type2.filter((item) => item.labassetId !== id),
         }));
       } else if (type === 3) {
         setLabasset((prevLabasset) => ({
           ...prevLabasset,
-          type3: prevLabasset.type1.filter((item) => item.labassetId !== id),
+          type3: prevLabasset.type3.filter((item) => item.labassetId !== id),
         }));
       }
     }

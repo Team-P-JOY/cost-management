@@ -404,7 +404,8 @@ export default function Detail() {
 
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
-    { name: "กำหนดรายวิชา", link: { linkBreadcrumb } },
+    // { name: "กำหนดรายวิชา", link: { linkBreadcrumb } },
+    { name: "กำหนดรายวิชา", link: "/assign-course" },
     { name: isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล" },
   ];
 
