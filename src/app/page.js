@@ -60,6 +60,7 @@ export default function Dashboard() {
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedCourses, setExpandedCourses] = useState(new Set());
+  const [labDepartments, setLabDepartments] = useState([]);
 
   // Callback functions
   const redirectToPrepareLab = useCallback(() => {
@@ -117,12 +118,125 @@ export default function Dashboard() {
           );
           setSearchResults(personalFilteredData);
         }
+
+        // จัดการข้อมูล Lab Departments จาก result.dataGroup (ถ้ามี) หรือ filteredData
+        let departmentData = result.dataGroup || filteredData;
+
+        // Debug: แสดงข้อมูลฝ่ายที่ได้รับ
+        console.log("Department Data:", departmentData);
+        console.log(
+          "Department Names:",
+          departmentData.map((item) => item.labgroupName)
+        );
+
+        // ใช้ข้อมูลจาก dataGroup โดยตรงโดยไม่ต้องจัดกลุ่ม หรือแสดงชื่อฝ่ายทั้งหมดถ้าไม่มีข้อมูล
+        const departmentColors = [
+          {
+            gradient: "from-green-500 to-green-600",
+            bgGradient: "from-green-50 to-green-100",
+            darkBgGradient: "from-green-900/30 to-green-800/30",
+            borderColor: "border-green-200/50 dark:border-green-700/50",
+          },
+          {
+            gradient: "from-red-500 to-red-600",
+            bgGradient: "from-red-50 to-red-100",
+            darkBgGradient: "from-red-900/30 to-red-800/30",
+            borderColor: "border-red-200/50 dark:border-red-700/50",
+          },
+          {
+            gradient: "from-blue-500 to-blue-600",
+            bgGradient: "from-blue-50 to-blue-100",
+            darkBgGradient: "from-blue-900/30 to-blue-800/30",
+            borderColor: "border-blue-200/50 dark:border-blue-700/50",
+          },
+          {
+            gradient: "from-purple-500 to-purple-600",
+            bgGradient: "from-purple-50 to-purple-100",
+            darkBgGradient: "from-purple-900/30 to-purple-800/30",
+            borderColor: "border-purple-200/50 dark:border-purple-700/50",
+          },
+          {
+            gradient: "from-indigo-500 to-indigo-600",
+            bgGradient: "from-indigo-50 to-indigo-100",
+            darkBgGradient: "from-indigo-900/30 to-indigo-800/30",
+            borderColor: "border-indigo-200/50 dark:border-indigo-700/50",
+          },
+        ];
+
+        let departmentsArray;
+
+        // รายชื่อฝ่ายทั้งหมดที่ต้องแสดง (เรียงตาม LABGROUP_ID)
+        const allDepartments = [
+          { id: 1, name: "ฝ่ายห้องปฏิบัติการวิทยาศาสตร์พื้นฐาน" },
+          { id: 2, name: "ฝ่ายห้องปฎิบัติการวิทยาศาสตร์สุขภาพ" },
+          { id: 3, name: "ฝ่ายห้องปฏิบัติการวิทยาศาสตร์เทคโนโลยี" },
+          { id: 4, name: "ฝ่ายห้องปฎิบัติการวิทยาศาสตร์การแพทย์" },
+        ];
+
+        // สร้าง Map จากข้อมูลที่มี โดยใช้ LABGROUP_ID
+        const dataMap = new Map();
+        const additionalDepartments = new Map(); // เก็บฝ่ายที่มีข้อมูลแต่ไม่อยู่ในรายชื่อเริ่มต้น
+
+        if (departmentData && departmentData.length > 0) {
+          departmentData.forEach((item) => {
+            if (item.labgroupId && item.labgroupName) {
+              const labgroupId = parseInt(item.labgroupId);
+
+              dataMap.set(labgroupId, {
+                courses: item.course || 0,
+                rooms: item.labroom || 0,
+                name: item.labgroupName,
+              });
+
+              // ถ้า LABGROUP_ID ไม่อยู่ในรายชื่อเริ่มต้น ให้เพิ่มเข้าไป
+              if (!allDepartments.find((dept) => dept.id === labgroupId)) {
+                additionalDepartments.set(labgroupId, {
+                  id: labgroupId,
+                  name: item.labgroupName,
+                });
+              }
+            }
+          });
+        }
+
+        // รวมรายชื่อฝ่ายเริ่มต้นกับฝ่ายที่มีข้อมูลเพิ่มเติม
+        const finalDepartments = [
+          ...allDepartments,
+          ...Array.from(additionalDepartments.values()),
+        ];
+
+        // รวมข้อมูลทั้งหมด โดยแสดงทุกฝ่าย
+        departmentsArray = finalDepartments.map((dept, index) => {
+          const data = dataMap.get(dept.id) || {
+            courses: 0,
+            rooms: 0,
+            name: dept.name,
+          };
+          return {
+            title: data.name,
+            courses: data.courses,
+            rooms: data.rooms,
+            labgroupId: dept.id,
+            icon: <Home className="w-5 h-5" />,
+            ...departmentColors[index % departmentColors.length],
+          };
+        });
+
+        console.log("Departments Array:", departmentsArray);
+        console.log(
+          "Department Titles:",
+          departmentsArray.map((dept) => dept.title)
+        );
+
+        setLabDepartments(departmentsArray);
       } else {
         setSearchResults([]);
+        setLabDepartments([]);
       }
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
       setSearchResults([]);
+      setLabDepartments([]);
     } finally {
       setLoading(false);
     }
@@ -331,56 +445,15 @@ export default function Dashboard() {
               </h2>
               <div className="ml-auto">
                 <span className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-md">
-                  4 ฝ่าย
+                  {labDepartments.length} ฝ่าย
                 </span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                {
-                  title: "วิทยาศาสตร์สุขภาพ",
-                  courses: "10",
-                  rooms: "20",
-                  icon: <Home className="w-5 h-5" />,
-                  gradient: "from-green-500 to-green-600",
-                  bgGradient: "from-green-50 to-green-100",
-                  darkBgGradient: "from-green-900/30 to-green-800/30",
-                  borderColor: "border-green-200/50 dark:border-green-700/50",
-                },
-                {
-                  title: "วิทยาศาสตร์พื้นฐาน",
-                  courses: "30",
-                  rooms: "29",
-                  icon: <Home className="w-5 h-5" />,
-                  gradient: "from-red-500 to-red-600",
-                  bgGradient: "from-red-50 to-red-100",
-                  darkBgGradient: "from-red-900/30 to-red-800/30",
-                  borderColor: "border-red-200/50 dark:border-red-700/50",
-                },
-                {
-                  title: "วิทยาศาสตร์เทคโนโลยี",
-                  courses: "40",
-                  rooms: "35",
-                  icon: <Home className="w-5 h-5" />,
-                  gradient: "from-blue-500 to-blue-600",
-                  bgGradient: "from-blue-50 to-blue-100",
-                  darkBgGradient: "from-blue-900/30 to-blue-800/30",
-                  borderColor: "border-blue-200/50 dark:border-blue-700/50",
-                },
-                {
-                  title: "วิทยาศาสตร์การแพทย์",
-                  courses: "50",
-                  rooms: "45",
-                  icon: <Home className="w-5 h-5" />,
-                  gradient: "from-purple-500 to-purple-600",
-                  bgGradient: "from-purple-50 to-purple-100",
-                  darkBgGradient: "from-purple-900/30 to-purple-800/30",
-                  borderColor: "border-purple-200/50 dark:border-purple-700/50",
-                },
-              ].map((dept, index) => (
+              {labDepartments.map((dept, index) => (
                 <div
-                  key={index}
+                  key={dept.title}
                   className={`bg-gradient-to-br ${dept.bgGradient} dark:bg-gradient-to-br dark:${dept.darkBgGradient} backdrop-blur-sm rounded-2xl p-4 border-2 ${dept.borderColor} shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105`}>
                   <div className="flex items-center gap-3 mb-3">
                     <div

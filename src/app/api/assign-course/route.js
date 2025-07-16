@@ -277,6 +277,7 @@ export async function GET(req) {
         });
       } else {
         let data;
+        let dataGroup;
         if (labgroupId) {
           data = await executeQuery(
             `SELECT LAB.LAB_ID, 
@@ -284,7 +285,7 @@ export async function GET(req) {
           MAX(LAB.ACADYEAR) AS ACADYEAR,
           MAX(LABGROUP.LABGROUP_NAME) AS LABGROUP_NAME,
           MAX(LAB.SEMESTER) AS SEMESTER, 
-          MAX(COURSE.COURSECODE) AS COURSECODE, 
+          MAX(COURSE.COURSECODE) AS COURSECODE,       
           MAX(COURSE.COURSENAME) AS COURSENAME, 
           MAX(LAB.PERSON_ID) AS PERSON_ID, 
           MAX(PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME) AS FULLNAME, 
@@ -312,6 +313,34 @@ export async function GET(req) {
         AND (LAB.LAB_PARENT_ID IS NULL OR LAB.LAB_PARENT_ID = 0)
         GROUP BY LAB.LAB_ID
         ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`,
+            {
+              schId,
+              labgroupId,
+            }
+          );
+          dataGroup = await executeQuery(
+            `SELECT 
+                LG.LABGROUP_NAME,   
+                LG.LABGROUP_ID,
+                COUNT(CASE 
+                    WHEN LAB.LAB_PARENT_ID IS NULL OR LAB.LAB_PARENT_ID = 0 THEN LAB.COURSEID 
+                    END) AS COURSE,
+                SUM(LAB.LABROOM) AS LABROOM
+            FROM CST_LABCOURSE LAB 
+            INNER JOIN CST_SCHYEAR SCH 
+                ON SCH.SCH_ID = :schId
+                AND SCH.SCH_ID IS NOT NULL
+                AND SCH.SEMESTER = LAB.SEMESTER
+                AND SCH.ACADYEAR = LAB.ACADYEAR
+            INNER JOIN CST_LABGROUP LG
+                ON LG.LABGROUP_ID = LAB.LABGROUP_ID
+            AND LAB.LABGROUP_ID = :labgroupId
+            WHERE 
+                LAB.FLAG_DEL = 0
+            GROUP BY 
+                LG.LABGROUP_NAME,
+                LG.LABGROUP_ID`,
+
             {
               schId,
               labgroupId,
@@ -359,6 +388,31 @@ export async function GET(req) {
               schId,
             }
           );
+          dataGroup = await executeQuery(
+            ` SELECT 
+                LG.LABGROUP_NAME,  
+                LG.LABGROUP_ID,
+                COUNT(CASE 
+                    WHEN LAB.LAB_PARENT_ID IS NULL OR LAB.LAB_PARENT_ID = 0 THEN LAB.COURSEID 
+                    END) AS COURSE,
+                SUM(LAB.LABROOM) AS LABROOM
+            FROM CST_LABCOURSE LAB 
+            INNER JOIN CST_SCHYEAR SCH 
+                ON SCH.SCH_ID = :schId
+                AND SCH.SCH_ID IS NOT NULL
+                AND SCH.SEMESTER = LAB.SEMESTER
+                AND SCH.ACADYEAR = LAB.ACADYEAR
+            INNER JOIN CST_LABGROUP LG
+                ON LG.LABGROUP_ID = LAB.LABGROUP_ID
+            WHERE 
+                LAB.FLAG_DEL = 0
+            GROUP BY 
+                LG.LABGROUP_NAME,
+                LG.LABGROUP_ID`,
+            {
+              schId,
+            }
+          );
         }
 
         const semester = await getSemester();
@@ -373,6 +427,7 @@ export async function GET(req) {
           data: data,
           semester: semester,
           labgroup: labgroup,
+          dataGroup: dataGroup,
           say: "No schId provided, returning all lab courses.",
         });
       }
