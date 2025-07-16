@@ -12,7 +12,7 @@ test.describe('TestUser', () => {
     if (!isLoggedIn) {
       // Fill login form
       await page.fill('input[placeholder="Username"]', 'manit.ji');
-      await page.fill('input[placeholder="Password"]', '075317524');
+      await page.fill('input[placeholder="Password"]', 'Password');
       
       // Click login button
       await page.click('button[type="submit"]');
@@ -35,7 +35,7 @@ test.describe('TestUser', () => {
     
 
     // Wait for modal to open
-   await expect(page.locator('.modal')).toBeVisible();
+     await expect(page.locator('.modal')).toBeVisible();
     
     // Fill user form
     await page.fill('input[name="firstname"]', 'John');
