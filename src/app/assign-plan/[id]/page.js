@@ -283,6 +283,11 @@ function DetailContent() {
   }, [inventForm.values.assetId, invent]);
 
   useEffect(() => {
+    // Extract searchParams values outside of dependency array
+    const courseId = decodeURIComponent(searchParams.get("courseId") || "");
+    const schId = decodeURIComponent(searchParams.get("schId") || "");
+    const personId = session?.user.person_id;
+
     if (!isNew) {
       setLoading(true);
       const fetchData = async () => {
@@ -309,7 +314,7 @@ function DetailContent() {
               hour: form.hour,
               // labgroupNum: form.labgroupNum,
               personId: form.personId,
-              userId: session?.user.person_id,
+              userId: personId,
             });
 
             setLabasset({
@@ -332,10 +337,6 @@ function DetailContent() {
       setLoading(true);
       const fetchData = async () => {
         try {
-          const courseId = decodeURIComponent(
-            searchParams.get("courseId") || ""
-          );
-          const schId = decodeURIComponent(searchParams.get("schId") || "");
           const response = await axios.get(`/api/assign-course`, {
             params: { courseId, schId },
           });
@@ -351,7 +352,7 @@ function DetailContent() {
             formik.setValues({
               courseid: data.course?.courseid,
               labgroupId: "",
-              schId: searchParams.get("schId"),
+              schId: schId,
               acadyear: data.class?.[0]?.acadyear,
               semester: data.class?.[0]?.semester,
               section: data.class?.length,
@@ -359,7 +360,7 @@ function DetailContent() {
               hour: "",
               // labgroupNum: "",
               personId: "",
-              userId: session?.user.person_id,
+              userId: personId,
             });
 
             setLoading(false);
@@ -371,7 +372,8 @@ function DetailContent() {
       };
       fetchData();
     }
-  }, [id, formik, isNew, searchParams, session?.user.person_id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isNew]);
   // เมื่อ formik.values.labgroupId ถูกตั้งค่าแล้ว ให้เรียก handleChangeLabgroup เพื่ออัปเดต user
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -393,7 +395,8 @@ function DetailContent() {
         formik.setFieldValue("personId", "");
       }
     }
-  }, [formik.values.labgroupId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formik.values.labgroupId, formik.values.personId, data?.users]);
   let linkBreadcrumb = [];
   if (userlogin !== "ผู้ดูแลระบบ" || userlogin !== "หัวหน้าฝ่าย") {
     linkBreadcrumb = ["/assign-plan"];
