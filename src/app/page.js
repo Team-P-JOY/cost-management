@@ -1,4 +1,5 @@
 "use client";
+
 import {
   FiBook,
   FiDollarSign,
@@ -13,6 +14,7 @@ import {
   FiTrendingUp,
   FiActivity,
 } from "react-icons/fi";
+
 import {
   Armchair,
   ChartBarIcon,
@@ -31,6 +33,7 @@ import {
   Home,
   Info,
 } from "lucide-react";
+
 import Content from "@/components/Content";
 import ExportButton from "@/components/ExportButton";
 import Link from "next/link";
@@ -40,72 +43,86 @@ import TableList from "@/components/TableList";
 import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
+  // Session and user data
   const { data: session } = useSession();
   const userlogin = session?.user.userRole;
   const userIdlogin = session?.user.person_id;
   const labgroupName = session?.user.userInfo.labgroupName;
+
+  // Router
+  const router = useRouter();
+
+  // State management
   const [academicYears, setAcademicYears] = useState([]);
   const [labGroups, setLabGroups] = useState([]);
   const [selectedSchId, setSelectedSchId] = useState("");
   const [selectedLg, setSelectedLg] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter(); // Get the router object
-  const [expandedItems, setExpandedItems] = useState(new Set()); // สำหรับจัดการการแสดง/ซ่อนรายวิชาย่อย
-  const [expandedSections, setExpandedSections] = useState(
-    new Set(["reports"])
-  ); // สำหรับจัดการการแสดง/ซ่อนแต่ละ section
+  const [expandedCourses, setExpandedCourses] = useState(new Set());
 
+  // Callback functions
   const redirectToPrepareLab = useCallback(() => {
     router.push("/prepare-labu");
   }, [router]);
 
-  const toggleExpanded = (labId) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(labId)) {
-      newExpanded.delete(labId);
-    } else {
-      newExpanded.add(labId);
-    }
-    setExpandedItems(newExpanded);
+  const handleClick = (item) => {
+    const encodedLabId = btoa(item.labId.toString());
+    router.push(`/dashboard?labId=${encodedLabId}`);
   };
 
-  const toggleSection = (sectionId) => {
-    const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(sectionId)) {
-      newExpanded.delete(sectionId);
-    } else {
-      newExpanded.add(sectionId);
-    }
-    setExpandedSections(newExpanded);
-  };
+  const toggleCourseExpansion = useCallback((courseId) => {
+    setExpandedCourses((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(courseId)) {
+        newSet.delete(courseId);
+      } else {
+        newSet.add(courseId);
+      }
+      return newSet;
+    });
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await fetch(
-        `/api/assign-course?schId=${selectedSchId}&labgroupId=${selectedLg}`
-      );
+      // สร้าง URL parameters โดยไม่ส่ง labgroupId ถ้าเลือก "ทั้งหมด"
+      const params = new URLSearchParams();
+      params.append("schId", selectedSchId);
+
+      // ถ้าไม่ใช่ "ทั้งหมด" ให้ส่ง labgroupId ไป
+      if (selectedLg && selectedLg.trim() !== "") {
+        params.append("labgroupId", selectedLg);
+      }
+
+      const response = await fetch(`/api/assign-course?${params.toString()}`);
       const result = await response.json();
 
-      const filteredData = result.data.filter(
-        (item) => item.personId == userIdlogin
-      );
-      const labgroupFilteredData = result.data.filter(
-        (item) => item.labgroupName === labgroupName
-      );
-      if (userlogin === "แอดมิน") {
-        setSearchResults(result.data);
-      } else if (
-        userlogin === "หัวหน้าฝ่าย" &&
-        labgroupFilteredData &&
-        labgroupFilteredData.length > 0
-      ) {
-        setSearchResults(labgroupFilteredData);
-      } else if (filteredData && filteredData.length > 0) {
-        setSearchResults(filteredData);
+      if (result.success && result.data) {
+        // กรองข้อมูลตามสิทธิ์ของผู้ใช้
+        let filteredData = result.data;
+
+        if (userlogin === "แอดมิน") {
+          // แอดมินเห็นข้อมูลทั้งหมดตามการเลือก (API จะกรองให้แล้ว)
+          setSearchResults(filteredData);
+        } else if (userlogin === "หัวหน้าฝ่าย") {
+          // หัวหน้าฝ่ายเห็นเฉพาะข้อมูลของฝ่ายตัวเอง
+          const labgroupFilteredData = filteredData.filter(
+            (item) => item.labgroupName === labgroupName
+          );
+          setSearchResults(labgroupFilteredData);
+        } else {
+          // ผู้ใช้ทั่วไปเห็นเฉพาะข้อมูลของตัวเอง
+          const personalFilteredData = filteredData.filter(
+            (item) => item.personId == userIdlogin
+          );
+          setSearchResults(personalFilteredData);
+        }
+      } else {
+        setSearchResults([]);
       }
     } catch (error) {
       console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
+      setSearchResults([]);
     } finally {
       setLoading(false);
     }
@@ -166,32 +183,30 @@ export default function Dashboard() {
     fetchLabGroups();
   }, []);
   useEffect(() => {
-    // ตรวจสอบว่าเลือกครบทั้งสองค่าแล้ว
-    if (selectedSchId && selectedLg !== null) {
+    // ตรวจสอบว่าเลือกภาคการศึกษาแล้ว และเลือกฝ่ายห้องปฏิบัติการแล้ว (รวมทั้ง "ทั้งหมด")
+    if (selectedSchId && selectedLg !== null && selectedLg !== "") {
+      setLoading(true);
       fetchData();
     }
   }, [selectedSchId, selectedLg, fetchData]);
 
-  const handleClick = (item) => {
-    const encodedLabId = btoa(item.labId.toString());
-    router.push(`/dashboard?labId=${encodedLabId}`);
-  };
   return (
     <Content>
-      {/* Header Section */}
-      <div className="mb-8">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 border border-gray-200 dark:border-gray-600">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      {/* Unified Dashboard Overview */}
+      <div className="mb-6">
+        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-600 rounded-3xl p-6 border border-gray-200 dark:border-gray-600 shadow-xl">
+          {/* Header Section */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
             {/* Title Section */}
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-xl">
-                <BarChart3 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
+                <BarChart3 className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   แดชบอร์ดระบบจัดการต้นทุน
                 </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-gray-600 dark:text-gray-300 mt-1">
                   ภาพรวมข้อมูลการเตรียมปฏิบัติการและต้นทุนรายวิชา
                 </p>
               </div>
@@ -200,7 +215,7 @@ export default function Dashboard() {
             {/* Filters Section */}
             <div className="flex flex-col sm:flex-row gap-3">
               {/* Academic Year Selector */}
-              <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-600 shadow-sm min-w-[200px]">
+              <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200/50 dark:border-gray-600/50 shadow-md min-w-[200px]">
                 <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 <div className="flex-1">
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -220,7 +235,7 @@ export default function Dashboard() {
               </div>
 
               {/* Lab Group Selector */}
-              <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-600 shadow-sm min-w-[250px]">
+              <div className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200/50 dark:border-gray-600/50 shadow-md min-w-[250px]">
                 <Building2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 <div className="flex-1">
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -240,102 +255,87 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {[
-          {
-            title: "รายวิชาที่เปิดให้บริการ",
-            value: searchResults.length,
-            unit: "รายวิชา",
-            icon: <BookOpen className="w-5 h-5" />,
-            iconBg: "bg-blue-100 dark:bg-blue-900",
-            iconColor: "text-blue-600 dark:text-blue-400",
-            gradient: "from-blue-500 to-blue-600",
-          },
-          {
-            title: "ต้นทุนรวม",
-            value: "-",
-            unit: "บาท",
-            icon: <FiDollarSign className="w-5 h-5" />,
-            iconBg: "bg-green-100 dark:bg-green-900",
-            iconColor: "text-green-600 dark:text-green-400",
-            gradient: "from-green-500 to-green-600",
-          },
-          {
-            title: "จำนวนนักศึกษา",
-            value: searchResults.reduce(
-              (sum, item) => sum + item.enrollseat,
-              0
-            ),
-            unit: "คน",
-            icon: <Users className="w-5 h-5" />,
-            iconBg: "bg-purple-100 dark:bg-purple-900",
-            iconColor: "text-purple-600 dark:text-purple-400",
-            gradient: "from-purple-500 to-purple-600",
-          },
-        ].map((stat, index) => (
-          <div
-            key={index}
-            className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-            <div className="flex items-center justify-between mb-3">
-              <div className={`p-2 rounded-lg ${stat.iconBg}`}>
-                <div className={stat.iconColor}>{stat.icon}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  {typeof stat.value === "number"
-                    ? stat.value.toLocaleString()
-                    : stat.value}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {stat.unit}
-                </div>
-              </div>
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                {stat.title}
-              </h3>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+          {/* Statistics Section */}
+          <div className="mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                {
+                  title: "รายวิชาที่เปิดให้บริการ",
+                  value: searchResults.length,
+                  unit: "รายวิชา",
+                  icon: <BookOpen className="w-6 h-6" />,
+                  gradient: "from-blue-500 to-blue-600",
+                  bgGradient: "from-blue-50 to-blue-100",
+                  darkBgGradient: "from-blue-900/30 to-blue-800/30",
+                },
+                {
+                  title: "ต้นทุนรวม",
+                  value: "-",
+                  unit: "บาท",
+                  icon: <FiDollarSign className="w-6 h-6" />,
+                  gradient: "from-green-500 to-green-600",
+                  bgGradient: "from-green-50 to-green-100",
+                  darkBgGradient: "from-green-900/30 to-green-800/30",
+                },
+                {
+                  title: "จำนวนนักศึกษา",
+                  value: searchResults.reduce(
+                    (sum, item) => sum + item.enrollseat,
+                    0
+                  ),
+                  unit: "คน",
+                  icon: <Users className="w-6 h-6" />,
+                  gradient: "from-purple-500 to-purple-600",
+                  bgGradient: "from-purple-50 to-purple-100",
+                  darkBgGradient: "from-purple-900/30 to-purple-800/30",
+                },
+              ].map((stat, index) => (
                 <div
-                  className={`h-1.5 rounded-full bg-gradient-to-r ${stat.gradient}`}
-                  style={{ width: "75%" }}></div>
+                  key={index}
+                  className={`bg-gradient-to-br ${stat.bgGradient} dark:bg-gradient-to-br dark:${stat.darkBgGradient} backdrop-blur-sm rounded-2xl p-6 border border-white/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105`}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`p-3 bg-gradient-to-br ${stat.gradient} rounded-xl shadow-md`}>
+                      <div className="text-white">{stat.icon}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                        {typeof stat.value === "number"
+                          ? stat.value.toLocaleString()
+                          : stat.value}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {stat.unit}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      {stat.title}
+                    </h3>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Lab Departments Section */}
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-md">
+                <Building2 className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                ฝ่ายห้องปฏิบัติการ
+              </h2>
+              <div className="ml-auto">
+                <span className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-md">
+                  4 ฝ่าย
+                </span>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
 
-      {/* Lab Departments Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg mb-6">
-        <div
-          className="p-6 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          onClick={() => toggleSection("departments")}>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-              <Building2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            </div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              ฝ่ายห้องปฏิบัติการ
-            </h2>
-            <div className="ml-auto flex items-center gap-2">
-              <span className="bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 px-3 py-1 rounded-full text-sm">
-                4 ฝ่าย
-              </span>
-              {expandedSections.has("departments") ? (
-                <FiChevronUp className="w-5 h-5 text-gray-500" />
-              ) : (
-                <FiChevronDown className="w-5 h-5 text-gray-500" />
-              )}
-            </div>
-          </div>
-        </div>
-
-        {expandedSections.has("departments") && (
-          <div className="p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 {
@@ -343,73 +343,77 @@ export default function Dashboard() {
                   courses: "10",
                   rooms: "20",
                   icon: <Home className="w-5 h-5" />,
-                  iconBg: "bg-green-100 dark:bg-green-900",
-                  iconColor: "text-green-600 dark:text-green-400",
-                  borderColor: "border-green-200 dark:border-green-700",
+                  gradient: "from-green-500 to-green-600",
+                  bgGradient: "from-green-50 to-green-100",
+                  darkBgGradient: "from-green-900/30 to-green-800/30",
+                  borderColor: "border-green-200/50 dark:border-green-700/50",
                 },
                 {
                   title: "วิทยาศาสตร์พื้นฐาน",
                   courses: "30",
                   rooms: "29",
                   icon: <Home className="w-5 h-5" />,
-                  iconBg: "bg-red-100 dark:bg-red-900",
-                  iconColor: "text-red-600 dark:text-red-400",
-                  borderColor: "border-red-200 dark:border-red-700",
+                  gradient: "from-red-500 to-red-600",
+                  bgGradient: "from-red-50 to-red-100",
+                  darkBgGradient: "from-red-900/30 to-red-800/30",
+                  borderColor: "border-red-200/50 dark:border-red-700/50",
                 },
                 {
                   title: "วิทยาศาสตร์เทคโนโลยี",
                   courses: "40",
                   rooms: "35",
                   icon: <Home className="w-5 h-5" />,
-                  iconBg: "bg-blue-100 dark:bg-blue-900",
-                  iconColor: "text-blue-600 dark:text-blue-400",
-                  borderColor: "border-blue-200 dark:border-blue-700",
+                  gradient: "from-blue-500 to-blue-600",
+                  bgGradient: "from-blue-50 to-blue-100",
+                  darkBgGradient: "from-blue-900/30 to-blue-800/30",
+                  borderColor: "border-blue-200/50 dark:border-blue-700/50",
                 },
                 {
                   title: "วิทยาศาสตร์การแพทย์",
                   courses: "50",
                   rooms: "45",
                   icon: <Home className="w-5 h-5" />,
-                  iconBg: "bg-purple-100 dark:bg-purple-900",
-                  iconColor: "text-purple-600 dark:text-purple-400",
-                  borderColor: "border-purple-200 dark:border-purple-700",
+                  gradient: "from-purple-500 to-purple-600",
+                  bgGradient: "from-purple-50 to-purple-100",
+                  darkBgGradient: "from-purple-900/30 to-purple-800/30",
+                  borderColor: "border-purple-200/50 dark:border-purple-700/50",
                 },
               ].map((dept, index) => (
                 <div
                   key={index}
-                  className={`bg-gray-50 dark:bg-gray-700 rounded-xl p-4 border-2 ${dept.borderColor} hover:shadow-md transition-all duration-200`}>
+                  className={`bg-gradient-to-br ${dept.bgGradient} dark:bg-gradient-to-br dark:${dept.darkBgGradient} backdrop-blur-sm rounded-2xl p-4 border-2 ${dept.borderColor} shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105`}>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className={`p-2 rounded-lg ${dept.iconBg}`}>
-                      <div className={dept.iconColor}>{dept.icon}</div>
+                    <div
+                      className={`p-2 bg-gradient-to-br ${dept.gradient} rounded-xl shadow-md`}>
+                      <div className="text-white">{dept.icon}</div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
                         <span>{dept.courses}</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-gray-600 dark:text-gray-400 font-normal">
                           รายวิชา
                         </span>
                         <span className="text-gray-400">|</span>
                         <span>{dept.rooms}</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-gray-600 dark:text-gray-400 font-normal">
                           ห้อง
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center bg-white dark:bg-gray-600 p-2 rounded-lg">
+                  <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 text-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm p-3 rounded-xl border border-white/50 dark:border-gray-600/50">
                     {dept.title}
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        )}
+        </div>
       </div>
+
       {/* Reports Section */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg">
-        <div
-          className="p-6 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          onClick={() => toggleSection("reports")}>
+        <div className="p-6 border-b border-gray-200 dark:border-gray-600">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
               <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -421,157 +425,155 @@ export default function Dashboard() {
               <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1 rounded-full text-sm">
                 {searchResults.length} รายวิชา
               </span>
-              {expandedSections.has("reports") ? (
-                <FiChevronUp className="w-5 h-5 text-gray-500" />
-              ) : (
-                <FiChevronDown className="w-5 h-5 text-gray-500" />
-              )}
             </div>
           </div>
         </div>
 
-        {expandedSections.has("reports") && (
-          <div className="p-6">
-            <div className="bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden">
-              <TableList
-                meta={[
-                  {
-                    key: "coursename",
-                    content: "ชื่อรายวิชา",
-                    render: (item) => (
+        <div className="p-6">
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden p-2">
+            <TableList
+              meta={[
+                {
+                  key: "coursename",
+                  content: "ชื่อรายวิชา",
+                  render: (item) => {
+                    const isExpanded = expandedCourses.has(item.labId);
+                    const hasSubCourses = item.sub && item.sub.length > 0;
+
+                    return (
                       <div className="space-y-2">
-                        <div
-                          className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 p-2 rounded-md transition-colors"
-                          onClick={() => toggleExpanded(item.labId)}>
+                        <div className="flex items-center gap-2 p-2 rounded-md">
                           <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                           <div className="flex-1">
                             <div className="font-medium text-gray-900 dark:text-gray-100">
                               {item.coursecode} {item.coursename}
                             </div>
-                            {item.sub && item.sub.length > 0 && (
+                            {hasSubCourses && (
                               <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full">
+                                <button
+                                  onClick={() =>
+                                    toggleCourseExpansion(item.labId)
+                                  }
+                                  className="flex items-center gap-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">
+                                  {isExpanded ? (
+                                    <FiChevronUp className="w-3 h-3" />
+                                  ) : (
+                                    <FiChevronDown className="w-3 h-3" />
+                                  )}
                                   {item.sub.length} รายวิชาย่อย
-                                </span>
-                                {expandedItems.has(item.labId) ? (
-                                  <FiChevronUp className="w-4 h-4 text-gray-500" />
-                                ) : (
-                                  <FiChevronDown className="w-4 h-4 text-gray-500" />
-                                )}
+                                </button>
                               </div>
                             )}
                           </div>
                         </div>
-                        {expandedItems.has(item.labId) &&
-                          item.sub &&
-                          item.sub.length > 0 && (
-                            <div className="ml-6 space-y-1">
-                              {item.sub.map((sub, iSub) => (
-                                <div
-                                  key={iSub}
-                                  className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 p-2 bg-gray-50 dark:bg-gray-600 rounded-md">
-                                  <ChevronsRight className="w-3 h-3" />
-                                  <span>
-                                    {sub.coursecode} {sub.coursename}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
+                        {hasSubCourses && isExpanded && (
+                          <div className="ml-6 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                            {item.sub.map((sub, iSub) => (
+                              <div
+                                key={iSub}
+                                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 p-2 bg-gray-50 dark:bg-gray-600 rounded-md border-l-2 border-blue-200 dark:border-blue-700">
+                                <ChevronsRight className="w-3 h-3" />
+                                <span>
+                                  {sub.coursecode} {sub.coursename}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    ),
+                    );
                   },
-                  {
-                    key: "facultyname",
-                    content: "สำนักวิชา",
-                    render: (item) => (
-                      <div className="space-y-1">
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
-                          {item.facultyname}
+                },
+                {
+                  key: "facultyname",
+                  content: "สำนักวิชา",
+                  render: (item) => (
+                    <div className="space-y-1">
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                        {item.facultyname}
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md inline-block">
+                        {item.facultycode}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  key: "section",
+                  content: "รายละเอียดวิชา",
+                  width: "150",
+                  render: (item) => (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          กลุ่มเรียน: {item.section}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-1">
+                          <User2 className="w-3 h-3" />
+                          <span>{item.enrollseat}</span>
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md inline-block">
-                          {item.facultycode}
+                        <span>|</span>
+                        <div className="flex items-center gap-1">
+                          <Armchair className="w-3 h-3" />
+                          <span>{item.totalseat}</span>
                         </div>
                       </div>
-                    ),
-                  },
-                  {
-                    key: "section",
-                    content: "รายละเอียดวิชา",
-                    width: "150",
-                    render: (item) => (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <GraduationCap className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            กลุ่มเรียน: {item.section}
+                    </div>
+                  ),
+                },
+                {
+                  key: "fullname",
+                  content: "รายละเอียดห้องปฏิบัติการ",
+                  width: "300",
+                  render: (item) => {
+                    if (!item.labgroupName) {
+                      return (
+                        <div className="text-center py-2">
+                          <span className="text-xs text-gray-400 dark:text-gray-600 italic">
+                            (ไม่มีข้อมูล)
                           </span>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                          <div className="flex items-center gap-1">
-                            <User2 className="w-3 h-3" />
-                            <span>{item.enrollseat}</span>
-                          </div>
-                          <span>|</span>
-                          <div className="flex items-center gap-1">
-                            <Armchair className="w-3 h-3" />
-                            <span>{item.totalseat}</span>
-                          </div>
+                      );
+                    }
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            {item.labgroupName}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">ผู้รับผิดชอบหลัก:</span>{" "}
+                          {item.fullname}
                         </div>
                       </div>
-                    ),
+                    );
                   },
-                  {
-                    key: "fullname",
-                    content: "รายละเอียดห้องปฏิบัติการ",
-                    width: "300",
-                    render: (item) => {
-                      if (!item.labgroupName) {
-                        return (
-                          <div className="text-center py-2">
-                            <span className="text-xs text-gray-400 dark:text-gray-600 italic">
-                              (ไม่มีข้อมูล)
-                            </span>
-                          </div>
-                        );
-                      }
-                      return (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
-                              {item.labgroupName}
-                            </span>
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            <span className="font-medium">
-                              ผู้รับผิดชอบหลัก:
-                            </span>{" "}
-                            {item.fullname}
-                          </div>
-                        </div>
-                      );
-                    },
-                  },
-                  {
-                    key: "labId",
-                    content: "จัดการ",
-                    render: (item) => (
-                      <button
-                        onClick={() => handleClick(item)}
-                        className="flex items-center gap-2 px-4 py-2 text-white text-sm bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-lg transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105">
-                        <Info className="w-4 h-4" />
-                        รายละเอียด
-                      </button>
-                    ),
-                  },
-                ]}
-                data={searchResults}
-                loading={loading}
-              />
-            </div>
+                },
+                {
+                  key: "labId",
+                  content: "จัดการ",
+                  width: "140",
+                  className: "text-center",
+                  render: (item) => (
+                    <button
+                      onClick={() => handleClick(item)}
+                      className="flex items-center gap-2 px-4 py-2 text-white text-sm bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-lg transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105">
+                      <Info className="w-4 h-4" />
+                      รายละเอียด
+                    </button>
+                  ),
+                },
+              ]}
+              data={searchResults}
+              loading={loading}
+            />
           </div>
-        )}
+        </div>
       </div>
     </Content>
   );
