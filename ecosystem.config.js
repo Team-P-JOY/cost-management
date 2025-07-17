@@ -4,7 +4,7 @@ module.exports = {
     script: "node_modules/next/dist/bin/next", // ชี้ไปที่ Next.js executable โดยตรง
     args: "start -p 3000",
     env: {
-      NODE_ENV: "production"
+      NODE_ENV: "development"
     },
     
     // exec_mode: "cluster",
