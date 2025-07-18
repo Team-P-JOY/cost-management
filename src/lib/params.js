@@ -42,7 +42,7 @@ const navigation = [
   },
   {
     id: 3,
-    name: "จัดการข้อมลตั้งต้น ",
+    name: "จัดการข้อมูลตั้งต้น ",
     description: "จัดการข้อมูลพัสดุ ",
     icon: FiBox,
 
@@ -79,7 +79,7 @@ const navigation = [
       },
       ,
       {
-        id: 35,
+        id: 36,
         name: "ครุภัณฑ์วิทยาศาสตร์",
         icon: FiBox,
         href: "/assetss?idType=4",

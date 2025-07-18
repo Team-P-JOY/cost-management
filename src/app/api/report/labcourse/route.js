@@ -355,6 +355,8 @@ export async function GET(req) {
         { status: 400 }
       );
     }
+
+    // เรียก main data query ก่อน
     const data = await executeQuery(
       `SELECT LAB.LAB_ID, 
       LAB.COURSEID, 
@@ -385,26 +387,58 @@ export async function GET(req) {
       WHERE LAB.LAB_ID = :id`,
       { id }
     );
+
+    // เรียก sub labcourse สำหรับแต่ละรายการ
     for (let index = 0; index < data.length; index++) {
       data[index].sub = await getSubLabcourse(data[index].labId);
     }
+
+    // เรียก queries ทั้งหมดพร้อมกัน (Parallel Execution)
+    const [
+      faculty,
+      program,
+      reg,
+      user,
+      asset,
+      labjob,
+      equipment,
+      supplies,
+      durableitems,
+      facproReport,
+      scientific,
+      broken,
+    ] = await Promise.all([
+      getFacultyEnroll(id),
+      getProgramEnroll(id),
+      data.length > 0
+        ? getReg(data[0].courseid, data[0].semester, data[0].acadyear)
+        : Promise.resolve(null),
+      getUser(id),
+      getAsset(id),
+      getLabjob(id),
+      getEquipment(id),
+      getSupplies(id),
+      getDurableitems(id),
+      getFacproReport(id),
+      getScientific(id),
+      getBroken(id),
+    ]);
+
     return NextResponse.json({
       success: true,
       data: data,
-      faculty: await getFacultyEnroll(id),
-      program: await getProgramEnroll(id),
-      reg:
-        data.length > 0 &&
-        (await getReg(data[0].courseid, data[0].semester, data[0].acadyear)),
-      user: await getUser(id),
-      asset: await getAsset(id),
-      labjob: await getLabjob(id),
-      equipment: await getEquipment(id),
-      supplies: await getSupplies(id),
-      durableitems: await getDurableitems(id),
-      facproReport: await getFacproReport(id),
-      scientific: await getScientific(id),
-      broken: await getBroken(id),
+      faculty: faculty,
+      program: program,
+      reg: reg,
+      user: user,
+      asset: asset,
+      labjob: labjob,
+      equipment: equipment,
+      supplies: supplies,
+      durableitems: durableitems,
+      facproReport: facproReport,
+      scientific: scientific,
+      broken: broken,
     });
   } catch (error) {
     return NextResponse.json(
