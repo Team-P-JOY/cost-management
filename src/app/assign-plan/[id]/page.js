@@ -110,24 +110,21 @@ function DetailContent() {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      console.log("formik values", values);
       // values.labasset = labasset;
       // values.courseUser = courseUser;
       try {
-        console.log("values", values);
         if (isNew) {
           await axios.post(`/api/assign-course`, values);
           toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
           router.push("/assign-course?schId=" + searchParams.get("schId"));
         } else {
           const res = await axios.put(`/api/assign-course?id=${id}`, values);
-          console.log("res", res);
           toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
           router.back();
         }
       } catch (error) {
         toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
-        console.error("❌ Error saving data:", error);
+        console.error(" Error saving data:", error);
       }
     },
   });
@@ -322,13 +319,12 @@ function DetailContent() {
               type2: data.labasset?.filter((item) => item.type === 2) || [],
               type3: data.labasset?.filter((item) => item.type === 3) || [],
             });
-            console.log("data.courseUser", data.courseUser);
             setCourseUser(data.courseUser);
 
             setLoading(false);
           }
         } catch (err) {
-          console.error("❌ Error fetching data:", err);
+          console.error(" Error fetching data:", err);
           toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
         }
       };
@@ -366,7 +362,7 @@ function DetailContent() {
             setLoading(false);
           }
         } catch (err) {
-          console.error("❌ Error fetching data:", err);
+          console.error(" Error fetching data:", err);
           toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
         }
       };
@@ -425,7 +421,7 @@ function DetailContent() {
         setInvent(data.data);
       }
     } catch (err) {
-      console.error("❌ Error fetching data:", err);
+      console.error(" Error fetching data:", err);
       toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
     } finally {
       setLoadingInvent(false);
@@ -461,7 +457,6 @@ function DetailContent() {
     setUserFormModal(true);
     const asset = courseUser.find((item) => item.labcourseUserId === id);
 
-    console.log("id", id);
     userForm.setValues({
       labcourseUserId: asset.labcourseUserId,
       personId: asset.personId,
@@ -494,7 +489,6 @@ function DetailContent() {
   };
 
   const _onPressDeleteUser = async (labcourseUserId) => {
-    console.log("labcourseUserId", labcourseUserId);
     const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
     if (result.isConfirmed) {
       const response = await axios.delete(

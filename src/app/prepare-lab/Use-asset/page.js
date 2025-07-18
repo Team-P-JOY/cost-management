@@ -34,7 +34,7 @@ function DetailContent() {
   const isNew = labId === "new";
 
   // Debug logs
-  console.log("URL Parameters:", { idParam, labjobId, labId, isNew });
+  // console.log("URL Parameters:", { idParam, labjobId, labId, isNew });
 
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("tab1");
@@ -112,7 +112,7 @@ function DetailContent() {
     validationSchema: validationInventForm,
     onSubmit: async (values) => {
       // ตรวจสอบค่าก่อนส่ง
-      console.log("InventForm values before submit:", values);
+      // console.log("InventForm values before submit:", values);
 
       values.assetNameTh = invent.find(
         (inv) => inv.assetId === parseInt(values.assetId)
@@ -131,7 +131,7 @@ function DetailContent() {
         (inv) => inv.assetId === parseInt(values.assetId)
       )?.invgroupName;
 
-      console.log("Values after asset info assignment:", values);
+      // console.log("Values after asset info assignment:", values);
 
       if (values.type === 1) {
         if (values.labjobAssetId) {
@@ -197,7 +197,7 @@ function DetailContent() {
       await saveLabAsset(values);
       setInventFormModal(false);
       inventForm.resetForm();
-      console.log("Form reset and modal closed.");
+      // console.log("Form reset and modal closed.");
     },
   });
   const brokenForm = useFormik({
@@ -247,13 +247,13 @@ function DetailContent() {
   });
 
   const saveLabAsset = async (values, isNew) => {
-    console.log("Saving Lab Asset with values:", values);
+    // console.log("Saving Lab Asset with values:", values);
     try {
       const url = `/api/use-asset`;
       const method = values.labjobAssetId ? "put" : "post";
 
       if (method === "put" && !searchParams.get("labjobId")) {
-        console.error("labjobId is required for PUT requests.");
+        // console.error("labjobId is required for PUT requests.");
         return {
           success: false,
           message: "labjobId is required for PUT requests.",
@@ -340,7 +340,7 @@ function DetailContent() {
     setLoading(true);
     try {
       if (!isNew) {
-        console.log("labId:", labId, "labjobId:", labjobId);
+        // console.log("labId:", labId, "labjobId:", labjobId);
 
         const response = await axios.get(
           `/api/use-asset?id=${labId}&labjobId=${labjobId}`
@@ -348,7 +348,7 @@ function DetailContent() {
         const data = response.data;
         if (data.success) {
           setDatalabjob({ labjob: data.labjob });
-          console.log("Data fetched:", data.labjob);
+          // console.log("Data fetched:", data.labjob);
           setData({ course: data.course });
 
           setLabasset({
@@ -423,7 +423,7 @@ function DetailContent() {
         }
       }
     } catch (err) {
-      console.error("❌ Error fetching data:", err);
+      console.error(" Error fetching data:", err);
       toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
     } finally {
       setLoading(false);
@@ -462,7 +462,7 @@ function DetailContent() {
         setInvent(data.data);
       }
     } catch (err) {
-      console.error("❌ Error fetching data:", err);
+      console.error(" Error fetching data:", err);
       toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
     } finally {
       setLoadingInvent(false);
@@ -617,7 +617,7 @@ function DetailContent() {
           });
         }
 
-        // ✅ เปลี่ยนหน้า
+        //  เปลี่ยนหน้า
         await router.push(
           `/prepare-lab/Use-asset?labId=${labId}&labjobId=${labjobId}&sId=${session?.user.person_id}`
         );

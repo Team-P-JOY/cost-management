@@ -3,10 +3,10 @@ import { executeQuery } from "@/lib/oracle";
 
 export async function GET(req, { params }) {
   try {
-    // ✅ รับค่าแบบ Dynamic Route (เช่น /assetss/123)
+    //  รับค่าแบบ Dynamic Route (เช่น /assetss/123)
     // const { id } = params || {};
 
-    // ✅ รับค่าแบบ Query String (เช่น /assetss?idType=1)
+    //  รับค่าแบบ Query String (เช่น /assetss?idType=1)
     const searchParams = new URL(req.nextUrl).searchParams;
     const idType = searchParams.get("idType");
     const id = searchParams.get("id");

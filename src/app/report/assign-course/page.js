@@ -76,13 +76,13 @@ function ListContent() {
         if (schselect === "0") {
           schselect = "0";
         }
-        console.log("Using schId:", schselect);
+        // console.log("Using schId:", schselect);
 
         const response = await axios.get(`/api/assign-course`, {
           params: { schId: schselect, labgroupId },
         });
         const data = response.data;
-        console.log("Data fetched:", data.data);
+        // console.log("Data fetched:", data.data);
         if (data.success) {
           const filteredData = data.data.filter(
             (item) => item.personId == userIdlogin
@@ -90,24 +90,17 @@ function ListContent() {
           const labgroupFilteredData = data.data.filter(
             (item) => item.labgroupName === labgroupName
           );
-          console.log(
-            "Filtered labgroup data:",
-            labgroupFilteredData,
-            labgroupName
-          );
+          
           if (userlogin === "แอดมิน") {
             setDataReport(data.data);
-            console.log("Admin user, showing all data");
           } else if (
             userlogin === "หัวหน้าฝ่าย" &&
             labgroupFilteredData &&
             labgroupFilteredData.length > 0
           ) {
             setDataReport(labgroupFilteredData);
-            console.log("Lab group user, showing filtered data");
           } else if (filteredData && filteredData.length > 0) {
             setDataReport(filteredData);
-            console.log("User data found, showing filtered data2");
           }
           setData({
             data: data.data,

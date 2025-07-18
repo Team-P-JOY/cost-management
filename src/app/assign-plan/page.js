@@ -314,18 +314,9 @@ function ListContent() {
     },
   ];
   const processedData = useMemo(() => {
-    console.log(
-      "Processing data...",
-      data.data,
-      userlogin,
-      userIdlogin,
-      labgroupName,
-      search,
-      sort
-    );
     let result = [];
 
-    // ✅ 1. กรองข้อมูลตามสิทธิ์ผู้ใช้
+    //  1. กรองข้อมูลตามสิทธิ์ผู้ใช้
     if (userlogin === "แอดมิน") {
       result = [...data.data];
     } else if (
@@ -341,7 +332,7 @@ function ListContent() {
       });
     }
 
-    // ✅ 2. ค้นหาข้อมูลจาก coursecode + coursename
+    //  2. ค้นหาข้อมูลจาก coursecode + coursename
     if (search.trim() !== "") {
       result = result.filter((item) => {
         const combined = `${item.coursecode} ${item.coursename}`.toLowerCase();
@@ -349,7 +340,7 @@ function ListContent() {
       });
     }
 
-    // ✅ 3. เรียงข้อมูลตามคีย์ที่เลือก
+    //  3. เรียงข้อมูลตามคีย์ที่เลือก
     if (sort.key !== "") {
       result.sort((a, b) => {
         const valA = a[sort.key];

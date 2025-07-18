@@ -1,4 +1,4 @@
-"use client"; // ✅ ต้องเป็น Client Component
+"use client"; //  ต้องเป็น Client Component
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";

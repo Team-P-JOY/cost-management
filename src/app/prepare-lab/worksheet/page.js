@@ -107,7 +107,7 @@ function PageContent() {
           }
         }
       } catch (err) {
-        console.error("❌ Error fetching sub-division data:", err);
+        console.error(" Error fetching sub-division data:", err);
       }
     },
     [labjobId, isNew]
@@ -128,7 +128,7 @@ function PageContent() {
         );
       }
     } catch (err) {
-      console.error("❌ Error fetching data:", err);
+      console.error(" Error fetching data:", err);
     }
   }, [labId]);
 

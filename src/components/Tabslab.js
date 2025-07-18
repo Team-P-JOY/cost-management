@@ -11,7 +11,6 @@ const Tabs = () => {
   ]);
 
   const handleEdit = (item) => {
-    console.log("Edit item:", item);
     // Handle your editing logic
   };
 

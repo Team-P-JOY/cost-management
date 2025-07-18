@@ -16,7 +16,6 @@ const AutocompleteSelect2 = ({
   const inputRef = useRef();
 
   useEffect(() => {
-    console.log("AutocompleteSelect2 options:", options);
     const selected = options.find((o) => o.value === value);
     setInputValue(selected ? selected.label : "");
   }, [value, options]);

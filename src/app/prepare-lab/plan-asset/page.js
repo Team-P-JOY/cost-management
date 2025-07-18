@@ -35,11 +35,11 @@ function PlanAssetContent() {
   const router = useRouter();
   // const isNew = id === "new";
   const idParam = searchParams.get("id");
-  console.log("Raw id:", idParam);
+  // console.log("Raw id:", idParam);
 
   const isNew = idParam === "new";
   const labId = isNew ? null : parseInt(idParam, 10);
-  console.log("Parsed labId:", labId, typeof labId, "isNew:", isNew);
+  // console.log("Parsed labId:", labId, typeof labId, "isNew:", isNew);
 
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("tab1");
@@ -107,20 +107,20 @@ function PlanAssetContent() {
       values.labasset = labasset;
       values.courseUser = courseUser;
       try {
-        console.log("values", values);
+        // console.log("values", values);
         if (isNew) {
           await axios.post(`/api/assign-course`, values);
           toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
           router.push("/assign-course?schId=" + searchParams.get("schId"));
         } else {
           const res = await axios.put(`/api/assign-course?id=${labId}`, values);
-          console.log("res", res);
+          // console.log("res", res);
           toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
           router.push("/prepare-lab/plan-asset?id=" + searchParams.get("id"));
         }
       } catch (error) {
         toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
-        console.error("❌ Error saving data:", error);
+        console.error(" Error saving data:", error);
       }
     },
   });
@@ -135,7 +135,7 @@ function PlanAssetContent() {
       .max(100, "ข้อความต้องไม่เกิน 100 ตัวอักษร"),
   });
   const saveLabAsset = async (values) => {
-    console.log("saveLabAsset", values);
+    // console.log("saveLabAsset", values);
     try {
       const payload = {
         labassetId: values.labassetId, // ถ้ามี = ใช้ PUT
@@ -155,7 +155,7 @@ function PlanAssetContent() {
         toastDialog("ข้อมูลไม่ครบถ้วน โปรดตรวจสอบ", "error");
         return;
       }
-      console.log("payload", payload);
+      // console.log("payload", payload);
       // ถ้ามี labassetId ให้ใช้ PUT แทน POST
       if (payload.labassetId) {
         await axios.put(`/api/use-asset/plnasset`, { labaset: payload });
@@ -357,7 +357,7 @@ function PlanAssetContent() {
         }
       }
     } catch (err) {
-      console.error("❌ Error fetching data:", err);
+      console.error(" Error fetching data:", err);
       toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
     } finally {
       setLoading(false);
@@ -388,7 +388,7 @@ function PlanAssetContent() {
         setInvent(data.data);
       }
     } catch (err) {
-      console.error("❌ Error fetching data:", err);
+      console.error(" Error fetching data:", err);
       toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
     } finally {
       setLoadingInvent(false);

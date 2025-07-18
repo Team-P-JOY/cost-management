@@ -110,24 +110,21 @@ export default function Detail() {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      console.log("formik values", values);
       // values.labasset = labasset;
       // values.courseUser = courseUser;
       try {
-        console.log("values", values);
         if (isNew) {
           await axios.post(`/api/assign-course`, values);
           toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
           router.push("/assign-course?schId=" + searchParams.get("schId"));
         } else {
           const res = await axios.put(`/api/assign-course?id=${id}`, values);
-          console.log("res", res);
           toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
           router.back();
         }
       } catch (error) {
         toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
-        console.error("❌ Error saving data:", error);
+        console.error(" Error saving data:", error);
       }
     },
   });
@@ -323,7 +320,7 @@ export default function Detail() {
             setLoading(false);
           }
         } catch (err) {
-          console.error("❌ Error fetching data:", err);
+          console.error(" Error fetching data:", err);
           toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
         }
       };
@@ -365,7 +362,7 @@ export default function Detail() {
             setLoading(false);
           }
         } catch (err) {
-          console.error("❌ Error fetching data:", err);
+          console.error(" Error fetching data:", err);
           toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
         }
       };
@@ -423,7 +420,7 @@ export default function Detail() {
         setInvent(data.data);
       }
     } catch (err) {
-      console.error("❌ Error fetching data:", err);
+      console.error(" Error fetching data:", err);
       toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
     } finally {
       setLoadingInvent(false);
@@ -459,7 +456,6 @@ export default function Detail() {
     setUserFormModal(true);
     const asset = courseUser.find((item) => item.labcourseUserId === id);
 
-    console.log("id", id);
     userForm.setValues({
       labcourseUserId: asset.labcourseUserId,
       personId: asset.personId,
@@ -492,7 +488,6 @@ export default function Detail() {
   };
 
   const _onPressDeleteUser = async (labcourseUserId) => {
-    console.log("labcourseUserId", labcourseUserId);
     const result = await confirmDialog("ยืนยันการลบข้อมูล ?", "");
     if (result.isConfirmed) {
       const response = await axios.delete(

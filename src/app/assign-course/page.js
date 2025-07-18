@@ -316,7 +316,6 @@ function ListContent() {
   const processedData = useMemo(() => {
     if (!mounted || !data?.data) return []; // ป้องกัน hydration mismatch
 
-    console.log("Processing data...", data.data);
     let result = [];
     if (userlogin === "แอดมิน") {
       result = data.data;
@@ -325,7 +324,6 @@ function ListContent() {
       userlogin === "ผู้ประสานงานรายวิชา"
     ) {
       result = data.data.filter((item) => {
-        console.log("Filtered data:", item);
         return (
           item.userCreated == userIdlogin ||
           item.labgroupName === labgroupName ||
@@ -341,7 +339,7 @@ function ListContent() {
       });
     }
 
-    // ✅ sort ตาม field เดียว (แล้วแต่คุณจะระบุ)
+    //  sort ตาม field เดียว (แล้วแต่คุณจะระบุ)
     if (sort.key !== "") {
       result.sort((a, b) => {
         const valA = a[sort.key];

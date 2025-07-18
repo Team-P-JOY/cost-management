@@ -32,7 +32,6 @@ function PageContent() {
   //console.log("session", session);
   const userlogin = session?.user.userRole;
   const userIdlogin = session?.user.person_id;
-  console.log("userIdlogin", userlogin);
   const breadcrumb = [
     { name: "บันทึกใบงานเตรียมปฏิบัติการ" },
     { name: "รายการรายวิชา", link: "/prepare-labu" },

@@ -194,7 +194,6 @@ export default function Page() {
             labId: labId,
           },
         });
-        console.log("response", response.data);
 
         if (response.data.labjoblist) {
           const labjobs = response.data.labjoblist || [];

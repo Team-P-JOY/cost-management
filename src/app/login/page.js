@@ -76,8 +76,7 @@ export default function LoginPage() {
       <div className="absolute top-4 right-4">
         <button
           onClick={() => setTheme(mounted === "dark" ? "light" : "dark")}
-          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full transition"
-        >
+          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full transition">
           {mounted === "dark" ? (
             <FiSun size={20} className="text-yellow-500" />
           ) : (
@@ -94,7 +93,7 @@ export default function LoginPage() {
             width={200}
             height={127.19}
             loading="lazy"
-            className="mb-4 transition-transform transform hover:scale-105" // ✅ เพิ่มเอฟเฟกต์ hover
+            className="mb-4 transition-transform transform hover:scale-105" //  เพิ่มเอฟเฟกต์ hover
           />
         </div>
 
@@ -131,8 +130,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 text-gray-500 dark:text-gray-400 text-lg transition"
-            >
+              className="absolute right-4 text-gray-500 dark:text-gray-400 text-lg transition">
               {showPassword ? <FiEyeOff /> : <FiEye />}
             </button>
           </div>
@@ -149,8 +147,7 @@ export default function LoginPage() {
           ) : (
             <button
               type="submit"
-              className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-all font-semibold shadow-md hover:shadow-xl"
-            >
+              className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-all font-semibold shadow-md hover:shadow-xl">
               <FiLogIn className="mr-2" /> เข้าสู่ระบบ
             </button>
           )}

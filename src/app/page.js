@@ -122,12 +122,7 @@ export default function Dashboard() {
         // จัดการข้อมูล Lab Departments จาก result.dataGroup (ถ้ามี) หรือ filteredData
         let departmentData = result.dataGroup || filteredData;
 
-        // Debug: แสดงข้อมูลฝ่ายที่ได้รับ
-        console.log("Department Data:", departmentData);
-        console.log(
-          "Department Names:",
-          departmentData.map((item) => item.labgroupName)
-        );
+       
 
         // ใช้ข้อมูลจาก dataGroup โดยตรงโดยไม่ต้องจัดกลุ่ม หรือแสดงชื่อฝ่ายทั้งหมดถ้าไม่มีข้อมูล
         const departmentColors = [
@@ -222,11 +217,7 @@ export default function Dashboard() {
           };
         });
 
-        console.log("Departments Array:", departmentsArray);
-        console.log(
-          "Department Titles:",
-          departmentsArray.map((dept) => dept.title)
-        );
+       
 
         setLabDepartments(departmentsArray);
       } else {
@@ -253,13 +244,11 @@ export default function Dashboard() {
       try {
         const response = await fetch("/api/academic");
         const result = await response.json();
-        console.log("Academic Years:", result);
 
         if (result.data && result.data.length > 0) {
           setAcademicYears(result.data);
 
           const defaultYear = result.data.find((item) => item.status === 1);
-          console.log("Default Year:", defaultYear);
 
           if (defaultYear) {
             setSelectedSchId(defaultYear.schId);
@@ -278,7 +267,6 @@ export default function Dashboard() {
       try {
         const response = await fetch("/api/labgroup");
         const result = await response.json();
-        console.log("Lab Groups:", result);
 
         if (result.data && result.data.length > 0) {
           // เพิ่มตัวเลือก "ทั้งหมด" ไว้ด้านหน้า

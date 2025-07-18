@@ -9,10 +9,10 @@ export async function GET(req) {
     const divId = req.nextUrl.searchParams.get("divId");
     const userloginId = req.nextUrl.searchParams.get("userloginId");
     const userlogin = req.nextUrl.searchParams.get("userlogin");
-    // console.log("🔍 GET API - labjobId:", labjobId);
-    // console.log("🔍 GET API - labId:", labId);
-    // console.log("🔍 GET API - sId:", sId);
-    // console.log("🔍 GET API - sId:", divId);
+    // console.log(" GET API - labjobId:", labjobId);
+    // console.log(" GET API - labId:", labId);
+    // console.log(" GET API - sId:", sId);
+    // console.log(" GET API - sId:", divId);
 
     let query = `
       SELECT L.*, P.TITLE_NAME || P.FIRST_NAME || ' ' || P.LAST_NAME AS FULLNAME ,P.SUBDIVISION_ID
@@ -23,13 +23,13 @@ export async function GET(req) {
 
     let params = {};
 
-    // ✅ ตรวจสอบว่ามีค่า labjobId หรือไม่
+    //  ตรวจสอบว่ามีค่า labjobId หรือไม่
     if (labjobId) {
       query += " AND L.LABJOB_ID = :labjobId";
       params.labjobId = labjobId;
     }
 
-    // ✅ ตรวจสอบว่ามีค่า labId หรือไม่
+    //  ตรวจสอบว่ามีค่า labId หรือไม่
     if (labId) {
       query += " AND L.LAB_ID = :labId";
       params.labId = labId;

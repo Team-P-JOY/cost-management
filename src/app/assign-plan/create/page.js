@@ -39,7 +39,7 @@ function DetailContent() {
           setLoading(false);
         }
       } catch (err) {
-        console.error("❌ Error fetching user data:", err);
+        console.error(" Error fetching user data:", err);
         alert("ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
       }
     };

@@ -94,7 +94,7 @@ function DetailContent() {
         }
       } catch (error) {
         toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
-        console.error("❌ Error saving data:", error);
+        console.error(" Error saving data:", error);
       }
     },
   });
@@ -234,7 +234,7 @@ function DetailContent() {
               userId: session?.user.person_id,
             });
 
-            console.log("data.labasset", data.labasset);
+            // console.log("data.labasset", data.labasset);
             setLabasset({
               type1: data.labasset?.filter((item) => item.type === 1) || [],
               type2: data.labasset?.filter((item) => item.type === 2) || [],
@@ -242,7 +242,7 @@ function DetailContent() {
             });
           }
         } catch (err) {
-          console.error("❌ Error fetching data:", err);
+          console.error(" Error fetching data:", err);
           toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
         } finally {
           setLoading(false);
@@ -280,7 +280,7 @@ function DetailContent() {
             });
           }
         } catch (err) {
-          console.error("❌ Error fetching data:", err);
+          console.error(" Error fetching data:", err);
           toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
         } finally {
           setLoading(false);
@@ -312,7 +312,7 @@ function DetailContent() {
         setInvent(data.data);
       }
     } catch (err) {
-      console.error("❌ Error fetching data:", err);
+      console.error(" Error fetching data:", err);
       toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
     } finally {
       setLoadingInvent(false);

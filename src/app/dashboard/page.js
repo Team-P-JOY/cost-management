@@ -1,4 +1,4 @@
-"use client"; // ✅ ต้องเพิ่ม
+"use client"; //  ต้องเพิ่ม
 
 import { useSession, signOut } from "next-auth/react";
 import Content from "@/components/Content";
@@ -63,7 +63,7 @@ export default function Dashboard({ searchParams }) {
   };
 
   const id = decodeLabId(encodedLabId);
-  console.log("labId", id);
+
   const [activeTab1, setActiveTab1] = useState("ภาพรวม");
   useEffect(() => {
     async function fetchData() {
@@ -80,7 +80,6 @@ export default function Dashboard({ searchParams }) {
         setFacproReport(json.facproReport);
         setBroken(json.broken);
         setScientific(Array.isArray(json.scientific) ? json.scientific : []);
-        console.log("json", json);
       } else {
         console.error("Failed to fetch data");
       }

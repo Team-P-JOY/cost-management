@@ -51,7 +51,7 @@ export default function Detail() {
         router.back();
       } catch (error) {
         toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
-        console.error("❌ Error saving user:", error);
+        console.error(" Error saving user:", error);
       }
     },
   });
@@ -131,8 +131,7 @@ export default function Detail() {
                     name="role"
                     value={formik.values.role}
                     onChange={formik.handleChange}
-                    className={className.select}
-                  >
+                    className={className.select}>
                     <option value="" disabled>
                       เลือกสิทธิการใช้งาน
                     </option>
@@ -156,16 +155,14 @@ export default function Detail() {
                       formik.touched.labgroupId && formik.errors.labgroupId
                         ? "border-red-500"
                         : ""
-                    }`}
-                  >
+                    }`}>
                     <option value="" disabled>
                       เลือกกลุ่มห้องปฎิบัติการ
                     </option>
                     {labgroupOptions.map((labgroup) => (
                       <option
                         key={labgroup.labgroupId}
-                        value={labgroup.labgroupId}
-                      >
+                        value={labgroup.labgroupId}>
                         {labgroup.labgroupName}
                       </option>
                     ))}
@@ -185,8 +182,7 @@ export default function Detail() {
                     name="statusId"
                     value={formik.values.statusId}
                     onChange={formik.handleChange}
-                    className={className.select}
-                  >
+                    className={className.select}>
                     <option value="1">ใช้งาน</option>
                     <option value="0">ไม่ใช้งาน</option>
                   </select>
@@ -198,14 +194,12 @@ export default function Detail() {
               <button
                 type="button"
                 className="cursor-pointer p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => router.back()}
-              >
+                onClick={() => router.back()}>
                 ยกเลิก
               </button>
               <button
                 type="submit"
-                className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+                className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 บันทึกข้อมูล
               </button>
             </div>

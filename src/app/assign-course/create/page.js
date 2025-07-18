@@ -37,7 +37,6 @@ function DetailContent() {
   const [filterData, setFilterData] = useState([]);
 
   useEffect(() => {
-    console.log("Selected type changed:", selected);
     if (selected === "0") {
       setFilterData(data.course);
     } else {
@@ -71,7 +70,7 @@ function DetailContent() {
           setLoading(false);
         }
       } catch (err) {
-        console.error("❌ Error fetching user data:", err);
+        console.error(" Error fetching user data:", err);
         alert("ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
       }
     };
@@ -89,15 +88,6 @@ function DetailContent() {
     });
     // router.push(`/assign-course/new`);
     router.push(`/assign-course/new?${params.toString()}`);
-    // ถ้าคุณยังต้องการให้แค่ดูข้อมูลที่เตรียมจะส่ง สามารถ console.log ได้
-    console.log({
-      courseid: courseid,
-      schId: schId,
-      acadyear: term.acadyear,
-      semester: term.semester,
-      section,
-      userId: session?.user.person_id,
-    });
   };
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "asc" });

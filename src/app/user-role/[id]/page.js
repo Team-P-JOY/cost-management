@@ -29,7 +29,6 @@ export default function Detail() {
     },
     validationSchema,
     onSubmit: async (values) => {
-      console.log("🔹 ส่งข้อมูล:", values);
       try {
         if (isNew) {
           await axios.post(`/api/user-role`, values);
@@ -40,7 +39,7 @@ export default function Detail() {
         router.back();
       } catch (error) {
         toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
-        console.error("❌ Error saving data:", error);
+        console.error(" Error saving data:", error);
       }
     },
   });
@@ -63,7 +62,7 @@ export default function Detail() {
             setLoading(false);
           }
         } catch (err) {
-          console.error("❌ Error fetching data:", err);
+          console.error(" Error fetching data:", err);
           toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
         }
       };
@@ -130,8 +129,7 @@ export default function Detail() {
                   name="statusId"
                   value={formik.values.statusId}
                   onChange={formik.handleChange}
-                  className={className.select}
-                >
+                  className={className.select}>
                   <option value="1">ใช้งาน</option>
                   <option value="0">ไม่ใช้งาน</option>
                 </select>
@@ -165,8 +163,7 @@ export default function Detail() {
                               formik.errors.roleAccess
                                 ? "text-red-500"
                                 : "text-gray-900 dark:text-gray-300"
-                            }`}
-                          >
+                            }`}>
                             {navi.name}
                           </span>
                         </div>
@@ -197,8 +194,7 @@ export default function Detail() {
                                     formik.errors.roleAccess
                                       ? "text-red-500"
                                       : "text-gray-900 dark:text-gray-300"
-                                  }`}
-                                >
+                                  }`}>
                                   {child.name}
                                 </span>
                               </div>
@@ -220,14 +216,12 @@ export default function Detail() {
               <button
                 type="button"
                 className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
-                onClick={() => router.back()}
-              >
+                onClick={() => router.back()}>
                 ยกเลิก
               </button>
               <button
                 type="submit"
-                className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
-              >
+                className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
                 บันทึกข้อมูล
               </button>
             </div>

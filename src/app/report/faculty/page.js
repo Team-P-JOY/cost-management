@@ -49,7 +49,6 @@ function ListContent() {
 
         if (yearResponse.data && yearResponse.data.success) {
           const yearData = yearResponse.data.year || [];
-          console.log("Year data fetched successfully:", yearData);
           setYearOptions(yearData);
 
           // ถ้ามีพารามิเตอร์ปีในใน URL ให้ใช้ค่านั้น
@@ -63,7 +62,6 @@ function ListContent() {
           }
 
           // 2. จากนั้นจึงดึงข้อมูลสำนักวิชา
-          console.log("Now fetching faculty data...");
           const facultyResponse = await axios.get(`/api/report/faculty`, {
             params: {
               year: yearParam || (yearData.length > 0 ? yearData[0].schId : ""),
@@ -73,7 +71,6 @@ function ListContent() {
 
           const facultyData = facultyResponse.data;
           if (facultyData.success) {
-            console.log("Faculty data fetched successfully");
             setFaculty(facultyData.data || []);
             setFacultyReport(facultyData.report || []); // เพิ่มบรรทัดนี้เพื่อเก็บข้อมูลรายงาน
 

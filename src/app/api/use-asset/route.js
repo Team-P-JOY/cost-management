@@ -361,7 +361,7 @@ export async function GET(req) {
       });
     }
   } catch (error) {
-    console.error("❌ Database Error in use-asset GET:", error);
+    console.error(" Database Error in use-asset GET:", error);
     return NextResponse.json(
       {
         success: false,
@@ -641,7 +641,7 @@ export async function DELETE(req) {
       message: "Lab job asset deleted successfully",
     });
   } catch (error) {
-    console.error("❌ Database Error:", error);
+    console.error(" Database Error:", error);
     return NextResponse.json(
       { success: false, message: "Database Error", error },
       { status: 500 }
